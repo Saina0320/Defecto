@@ -1,38 +1,48 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+
+type SupabaseClient = ReturnType<typeof createClient>
+
+async function countRows(supabase: SupabaseClient) {
+  const { count: profileCount, error: profileError } = await supabase
+    .from('profiles')
+    .select('*', { count: 'exact', head: true })
+
+  const { count: defectCount, error: defectError } = await supabase
+    .from('defects')
+    .select('*', { count: 'exact', head: true })
+
+  return { profileCount, defectCount, error: profileError || defectError }
+}
 
 export default function Home() {
   const [status, setStatus] = useState('Conectando...')
   const [profiles, setProfiles] = useState(0)
   const [defects, setDefects] = useState(0)
 
-  const supabase = createClient()
+  const [supabase] = useState(createClient)
+
+  const loadData = useCallback(
+    () =>
+      countRows(supabase).then(({ profileCount, defectCount, error }) => {
+        if (error) {
+          console.error(error)
+          setStatus('Error conectando con Supabase ❌')
+          return
+        }
+
+        setProfiles(profileCount ?? 0)
+        setDefects(defectCount ?? 0)
+        setStatus('Conexión con Supabase funcionando ✅')
+      }),
+    [supabase]
+  )
 
   useEffect(() => {
     loadData()
-  }, [])
-
-  async function loadData() {
-    const { count: profileCount, error: profileError } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-
-    const { count: defectCount, error: defectError } = await supabase
-      .from('defects')
-      .select('*', { count: 'exact', head: true })
-
-    if (profileError || defectError) {
-      console.error(profileError || defectError)
-      setStatus('Error conectando con Supabase ❌')
-      return
-    }
-
-    setProfiles(profileCount ?? 0)
-    setDefects(defectCount ?? 0)
-    setStatus('Conexión con Supabase funcionando ✅')
-  }
+  }, [loadData])
 
   async function createTestDefect() {
     const { error } = await supabase
