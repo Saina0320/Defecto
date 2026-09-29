@@ -1,0 +1,167 @@
+// Prisma schema for the KYC Defect Hub database (Supabase Postgres).
+//
+// It mirrors the existing tables one to one. Table, column, constraint and index names are the
+// database's own (through @map, @@map and map), so `prisma db push` on the current database
+// changes nothing, and on an empty database it recreates the same structure.
+//
+// Prisma cannot describe CHECK constraints or row level security. Those live in
+// prisma/sql/post-db-push.sql, which must be run by hand after `prisma db push`.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+// The connection URL is set in prisma.config.ts (CLI) and lib/prisma.ts (application).
+datasource db {
+  provider = "postgresql"
+}
+
+model Profile {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// What users type to sign in. Stored lowercase: two letters and five digits (profiles_soe_id_format_check).
+  soeId     String   @unique @map("soe_id")
+  firstName String   @map("first_name")
+  lastName  String   @map("last_name")
+  /// One of: analyst, manager, admin (profiles_role_check).
+  role      String   @default("analyst")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  defects          Defect[]
+  resolutions      Resolution[]
+  defectReads      DefectRead[]
+  auditLogs        AuditLog[]
+  qcFindings       QcFinding[]
+  uploadedEvidence Evidence[]
+  sessions         Session[]
+
+  @@map("profiles")
+}
+
+/// One row per signed-in browser. The browser holds the token in an HttpOnly cookie; the
+/// database only stores its SHA-256 hash, so reading this table does not reveal a usable token.
+model Session {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tokenHash String   @unique @map("token_hash")
+  profileId String   @map("profile_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([profileId], map: "idx_sessions_profile")
+  @@map("sessions")
+}
+
+model Defect {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ccid           String
+  kycid          String
+  /// One of: individual, entity (defects_case_type_check).
+  caseType       String    @map("case_type")
+  analystId      String    @map("analyst_id") @db.Uuid
+  analystContext String?   @map("analyst_context")
+  /// One of: draft, submitted, under_review, resolved (defects_status_check).
+  status         String    @default("draft")
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  submittedAt    DateTime? @map("submitted_at") @db.Timestamptz(6)
+  /// The database only sets this on insert; @updatedAt makes Prisma Client refresh it on update.
+  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  analyst    Profile      @relation(fields: [analystId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  resolution Resolution?
+  reads      DefectRead[]
+  auditLogs  AuditLog[]
+  qcFindings QcFinding[]
+  evidence   Evidence[]
+
+  @@index([ccid], map: "idx_defects_ccid")
+  @@index([kycid], map: "idx_defects_kycid")
+  @@index([analystId], map: "idx_defects_analyst")
+  @@index([status], map: "idx_defects_status")
+  @@map("defects")
+}
+
+/// At most one per defect (resolutions_defect_id_key).
+model Resolution {
+  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  defectId               String   @unique @map("defect_id") @db.Uuid
+  resolutionComment      String   @map("resolution_comment")
+  correctiveAction       String?  @map("corrective_action")
+  resolvedById           String   @map("resolved_by") @db.Uuid
+  resolvedAt             DateTime @default(now()) @map("resolved_at") @db.Timestamptz(6)
+  resolutionEvidencePath String?  @map("resolution_evidence_path")
+
+  defect     Defect  @relation(fields: [defectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  resolvedBy Profile @relation(fields: [resolvedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("resolutions")
+}
+
+/// One row per user who acknowledged a defect (defect_reads_defect_id_user_id_key).
+model DefectRead {
+  id       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  defectId String   @map("defect_id") @db.Uuid
+  userId   String   @map("user_id") @db.Uuid
+  readAt   DateTime @default(now()) @map("read_at") @db.Timestamptz(6)
+
+  defect Defect  @relation(fields: [defectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user   Profile @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([defectId, userId])
+  @@index([defectId], map: "idx_defect_reads_defect")
+  @@map("defect_reads")
+}
+
+model AuditLog {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  defectId  String?  @map("defect_id") @db.Uuid
+  actorId   String?  @map("actor_id") @db.Uuid
+  action    String
+  details   Json?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  defect Defect?  @relation(fields: [defectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  actor  Profile? @relation(fields: [actorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([defectId], map: "idx_audit_log_defect")
+  @@map("audit_log")
+}
+
+model QcFinding {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  defectId  String   @map("defect_id") @db.Uuid
+  checkerId String   @map("checker_id") @db.Uuid
+  qcDate    DateTime @default(now()) @map("qc_date") @db.Timestamptz(6)
+  finding   String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  /// The database only sets this on insert; @updatedAt makes Prisma Client refresh it on update.
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  defect  Defect  @relation(fields: [defectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  checker Profile @relation(fields: [checkerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([defectId], map: "idx_qc_findings_defect")
+  @@map("qc_findings")
+}
+
+model Evidence {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  defectId     String   @map("defect_id") @db.Uuid
+  uploadedById String   @map("uploaded_by") @db.Uuid
+  fileName     String   @map("file_name")
+  filePath     String   @map("file_path")
+  fileType     String?  @map("file_type")
+  /// Size in bytes.
+  fileSize     BigInt?  @map("file_size")
+  /// One of: qc, supporting, resolution (evidence_category_check).
+  category     String   @default("supporting")
+  uploadedAt   DateTime @default(now()) @map("uploaded_at") @db.Timestamptz(6)
+
+  defect     Defect  @relation(fields: [defectId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  uploadedBy Profile @relation(fields: [uploadedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([defectId], map: "idx_evidence_defect")
+  @@map("evidence")
+}
