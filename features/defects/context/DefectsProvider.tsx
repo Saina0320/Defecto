@@ -1,5 +1,4 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
-import { DEMO_DEFECTS } from '@/data/demo-defects';
 import { toggleReadReceipt } from '@/features/defects/lib/readReceipts';
 import { useStreamedData } from '@/hooks/useStreamedData';
 import type { Defect } from '@/types/defect';
@@ -12,7 +11,6 @@ type DefectsContextValue = {
   replaceDefect: (ccid: string, updated: Defect) => void;
   removeDefect: (ccid: string) => void;
   toggleRead: (ccid: string, reader: TeamMember, readAt: string) => void;
-  resetDefects: () => void;
 };
 
 const DefectsContext = createContext<DefectsContextValue | null>(null);
@@ -49,11 +47,9 @@ export function DefectsProvider({ defectsPromise, children }: DefectsProviderPro
     []
   );
 
-  const resetDefects = useCallback(() => setDefects(DEMO_DEFECTS), []);
-
   const value = useMemo(
-    () => ({ defects, addDefect, replaceDefect, removeDefect, toggleRead, resetDefects }),
-    [defects, addDefect, replaceDefect, removeDefect, toggleRead, resetDefects]
+    () => ({ defects, addDefect, replaceDefect, removeDefect, toggleRead }),
+    [defects, addDefect, replaceDefect, removeDefect, toggleRead]
   );
 
   return <DefectsContext.Provider value={value}>{children}</DefectsContext.Provider>;

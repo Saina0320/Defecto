@@ -2,7 +2,6 @@ import { useTransition } from 'react';
 import { Loader2, LogOut } from 'lucide-react';
 import { logout } from '@/features/auth/actions';
 
-/** Ends the session of the signed-in user, whatever persona is being simulated. */
 export function LogoutButton() {
   const [isPending, startTransition] = useTransition();
 

@@ -11,10 +11,6 @@ export function getActiveAnalysts(users: TeamMember[]): TeamMember[] {
   return users.filter((user) => user.role === 'Analyst' && user.status === 'Active');
 }
 
-export function getActiveSupervisors(users: TeamMember[]): TeamMember[] {
-  return users.filter((user) => user.status === 'Active' && (user.role === 'Manager' || user.role === 'Admin'));
-}
-
 /** Members expected to acknowledge defects: every active non-admin. */
 export function getAcknowledgmentAudience(users: TeamMember[]): TeamMember[] {
   return users.filter((user) => user.status === 'Active' && user.role !== 'Admin');

@@ -13,13 +13,9 @@ export function sanitizeSoeIdInput(input: string): string {
   return input.replace(/\s/g, '').slice(0, SOE_ID_LENGTH);
 }
 
-/** Profiles store the SOE ID in lowercase; users may type it in either case. */
-export function normalizeSoeId(input: string): string {
-  return input.trim().toLowerCase();
-}
-
 export function parseSoeId(input: unknown): ParsedSoeId {
-  const soeId = typeof input === 'string' ? normalizeSoeId(input) : '';
+  // Profiles store the SOE ID in lowercase; users may type it in either case.
+  const soeId = typeof input === 'string' ? input.trim().toLowerCase() : '';
 
   if (!soeId) return { ok: false, issue: 'empty' };
   if (!SOE_ID_PATTERN.test(soeId)) return { ok: false, issue: 'invalid-format' };

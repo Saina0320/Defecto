@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useMemo, type ReactNode } from 'react';
 import { STORAGE_KEYS } from '@/constants/storage-keys';
 import { DEMO_TEAM } from '@/data/demo-team';
 import { createAnalystMember, parseStoredTeam } from '@/features/team/lib/roster';
@@ -8,13 +8,10 @@ import type { TeamMember } from '@/types/team';
 
 type TeamContextValue = {
   teamUsers: TeamMember[];
-  /** The signed-in user, or the persona explicitly selected to simulate another member. */
+  /** The signed-in user. */
   currentUser: TeamMember;
-  selectedUserId: string | null;
-  selectUser: (userId: string) => TeamMember | undefined;
   addAnalyst: (name: string, email: string) => TeamMember;
   decommissionAnalyst: (memberId: string) => void;
-  resetTeam: () => void;
 };
 
 const TeamContext = createContext<TeamContextValue | null>(null);
@@ -30,22 +27,8 @@ type TeamProviderProps = {
 export function TeamProvider({ authenticatedUser, teamPromise, children }: TeamProviderProps) {
   // The cached roster renders immediately; the database profiles replace it once loaded.
   const [teamUsers, setTeamUsers] = usePersistentState(STORAGE_KEYS.USERS, DEMO_TEAM, parseStoredTeam);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   useStreamedData(teamPromise, setTeamUsers, 'Error loading profiles:');
-
-  const currentUser = useMemo(
-    () => teamUsers.find((member) => member.id === selectedUserId) ?? authenticatedUser,
-    [selectedUserId, teamUsers, authenticatedUser]
-  );
-
-  const selectUser = useCallback(
-    (userId: string) => {
-      setSelectedUserId(userId);
-      return teamUsers.find((member) => member.id === userId);
-    },
-    [teamUsers]
-  );
 
   const addAnalyst = useCallback(
     (name: string, email: string) => {
@@ -65,11 +48,9 @@ export function TeamProvider({ authenticatedUser, teamPromise, children }: TeamP
     [setTeamUsers]
   );
 
-  const resetTeam = useCallback(() => setTeamUsers(DEMO_TEAM), [setTeamUsers]);
-
   const value = useMemo(
-    () => ({ teamUsers, currentUser, selectedUserId, selectUser, addAnalyst, decommissionAnalyst, resetTeam }),
-    [teamUsers, currentUser, selectedUserId, selectUser, addAnalyst, decommissionAnalyst, resetTeam]
+    () => ({ teamUsers, currentUser: authenticatedUser, addAnalyst, decommissionAnalyst }),
+    [teamUsers, authenticatedUser, addAnalyst, decommissionAnalyst]
   );
 
   return <TeamContext.Provider value={value}>{children}</TeamContext.Provider>;

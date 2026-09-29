@@ -3,7 +3,7 @@ import { ROLE_DESCRIPTIONS } from "@/constants/team";
 import { useTeam } from "@/features/team/context/TeamProvider";
 import { useTheme } from "@/providers/ThemeProvider";
 
-/** Sidebar footer: simulated persona selector, demo reset, current user card and sign-out. */
+/** Sidebar footer: current user card and sign-out. */
 export function SidebarFooter() {
   const { t } = useTheme();
   const { currentUser } = useTeam();
