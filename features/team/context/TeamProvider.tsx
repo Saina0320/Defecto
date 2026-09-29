@@ -1,9 +1,9 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import { STORAGE_KEYS } from '@/constants/storage-keys';
 import { DEMO_TEAM } from '@/data/demo-team';
 import { createAnalystMember, parseStoredTeam } from '@/features/team/lib/roster';
 import { usePersistentState } from '@/hooks/usePersistentState';
-import { getActiveProfiles } from '@/services/profiles';
+import { useStreamedData } from '@/hooks/useStreamedData';
 import type { TeamMember } from '@/types/team';
 
 // Shown only while the roster is empty.
@@ -29,26 +29,18 @@ type TeamContextValue = {
 
 const TeamContext = createContext<TeamContextValue | null>(null);
 
-export function TeamProvider({ children }: { children: ReactNode }) {
-  // The cached roster renders immediately; Supabase profiles replace it once loaded.
+type TeamProviderProps = {
+  /** Active profiles read started on the server by the dashboard layout. */
+  teamPromise: Promise<TeamMember[]>;
+  children: ReactNode;
+};
+
+export function TeamProvider({ teamPromise, children }: TeamProviderProps) {
+  // The cached roster renders immediately; the database profiles replace it once loaded.
   const [teamUsers, setTeamUsers] = usePersistentState(STORAGE_KEYS.USERS, DEMO_TEAM, parseStoredTeam);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    getActiveProfiles()
-      .then((members) => {
-        if (!cancelled) setTeamUsers(members);
-      })
-      .catch((error: unknown) => {
-        console.error('Error loading profiles:', error);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [setTeamUsers]);
+  useStreamedData(teamPromise, setTeamUsers, 'Error loading profiles:');
 
   const currentUser = useMemo(
     () => teamUsers.find((member) => member.id === selectedUserId) ?? teamUsers[0] ?? PLACEHOLDER_USER,

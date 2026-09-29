@@ -21,7 +21,7 @@ export function normalizeKycidInput(value: string): string {
   return trimmed.startsWith('KYC-KYC-') ? trimmed.replace(/^KYC-KYC-/, 'KYC-') : trimmed;
 }
 
-/** Stable identity used to track the selected defect: the Supabase id, or the CCID for demo records. */
+/** Stable identity used to track the selected defect: the database id, or the CCID for demo records. */
 export function getDefectKey(defect: Defect): string {
   return defect.id ?? defect.ccid;
 }

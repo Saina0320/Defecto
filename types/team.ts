@@ -9,6 +9,6 @@ export type TeamMember = {
   email: string;
   initials: string;
   status: MemberStatus;
-  /** SOE identifier; only present for members loaded from Supabase. */
+  /** SOE identifier; only present for members loaded from the database. */
   soeId?: string;
 };

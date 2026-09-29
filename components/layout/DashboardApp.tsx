@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 import { DashboardFrame } from '@/components/layout/DashboardFrame';
-import { AppProviders } from '@/providers/AppProviders';
+import { AppProviders, type DashboardData } from '@/providers/AppProviders';
 
-export function DashboardApp({ children }: { children: ReactNode }) {
+export function DashboardApp({ data, children }: { data: DashboardData; children: ReactNode }) {
   return (
-    <AppProviders>
+    <AppProviders data={data}>
       <DashboardFrame>{children}</DashboardFrame>
     </AppProviders>
   );

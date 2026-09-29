@@ -1,6 +1,6 @@
 import type { TeamMember } from '@/types/team';
 
-// Initial demo roster: used before Supabase profiles load and by "Reset Data".
+// Initial demo roster: used before the database profiles load and by "Reset Data".
 export const DEMO_TEAM: TeamMember[] = [
   { id: 'MGR-01', name: 'Elena Vance', role: 'Manager', email: 'elena.vance.demo@citi.internal', initials: 'EV', status: 'Active' },
   { id: 'ADM-01', name: 'System Administrator', role: 'Admin', email: 'admin.ops.demo@citi.internal', initials: 'SA', status: 'Active' },

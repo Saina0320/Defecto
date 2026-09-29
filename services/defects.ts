@@ -1,57 +1,78 @@
-import { createClient } from '@/lib/supabase/client';
-import type { DefectInsert, DefectRow } from '@/types/database';
-import type { Defect } from '@/types/defect';
+import 'server-only';
+import type { Prisma } from '@/generated/prisma/client';
+import { getPrisma } from '@/lib/prisma';
+import type { CaseType, Defect } from '@/types/defect';
 
-function toDefect(row: DefectRow): Defect {
+const defectSelect = {
+  id: true,
+  ccid: true,
+  kycid: true,
+  caseType: true,
+  analystId: true,
+  analystContext: true,
+  status: true,
+  createdAt: true,
+} satisfies Prisma.DefectSelect;
+
+type DefectRecord = Prisma.DefectGetPayload<{ select: typeof defectSelect }>;
+
+function toDefect(record: DefectRecord): Defect {
   return {
     // Technical PostgreSQL id. NOT displayed as the Defect ID.
-    id: row.id,
+    id: record.id,
 
     // Real business identifiers
-    ccid: row.ccid,
-    kycid: row.kycid,
+    ccid: record.ccid,
+    kycid: record.kycid,
 
-    caseType: row.case_type === 'individual' ? 'Individual' : 'Entity',
+    caseType: record.caseType === 'individual' ? 'Individual' : 'Entity',
 
-    ownerId: row.analyst_id,
+    ownerId: record.analystId,
     analystName: 'Analyst',
 
-    dateCreated: row.created_at ? row.created_at.substring(0, 10) : '',
+    dateCreated: record.createdAt.toISOString().substring(0, 10),
 
-    explanation: row.analyst_context || '',
+    explanation: record.analystContext || '',
 
-    // Not stored in Supabase yet
+    // Not read from the database yet
     selectedCategories: [],
     qcFile: null,
     finalZipFile: null,
     resolution: null,
     readReceipts: [],
 
-    status: row.status,
+    status: record.status,
   };
 }
 
 export async function getDefects(): Promise<Defect[]> {
-  const { data, error } = await createClient()
-    .from('defects')
-    .select('*')
-    .order('created_at', { ascending: false });
+  const defects = await getPrisma().defect.findMany({
+    orderBy: { createdAt: 'desc' },
+    select: defectSelect,
+  });
 
-  if (error) {
-    console.error('Error obteniendo defects:', error);
-    throw error;
-  }
-
-  return (data || []).map(toDefect);
+  return defects.map(toDefect);
 }
 
-/** Inserts a defect row and returns the stored record. Throws the Supabase error on failure. */
-export async function insertDefect(values: DefectInsert): Promise<DefectRow> {
-  const { data, error } = await createClient().from('defects').insert(values).select().single();
+export type NewDefectValues = {
+  ccid: string;
+  kycid: string;
+  caseType: CaseType;
+  analystId: string;
+  explanation: string;
+};
 
-  if (error) {
-    throw error;
-  }
-
-  return data;
+/** Stores a new defect as a draft and returns its generated id and status. */
+export async function createDefect(values: NewDefectValues): Promise<{ id: string; status: string }> {
+  return getPrisma().defect.create({
+    data: {
+      ccid: values.ccid,
+      kycid: values.kycid,
+      caseType: values.caseType === 'Individual' ? 'individual' : 'entity',
+      analystId: values.analystId,
+      analystContext: values.explanation,
+      status: 'draft',
+    },
+    select: { id: true, status: true },
+  });
 }

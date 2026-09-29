@@ -1,0 +1,65 @@
+'use server';
+
+import { CASE_TYPES } from '@/constants/categories';
+import { createDefect } from '@/services/defects';
+import { findProfileIdByFullName } from '@/services/profiles';
+import type { CaseType } from '@/types/defect';
+
+export type SubmitDefectInput = {
+  ccid: string;
+  kycid: string;
+  caseType: CaseType;
+  analystName: string;
+  explanation: string;
+};
+
+export type SubmitDefectResult =
+  | { ok: true; id: string; status: string }
+  | { ok: false; reason: 'analyst-not-found' }
+  | { ok: false; reason: 'invalid-input' | 'database-error'; message: string };
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0;
+}
+
+// Server Functions are reachable with a plain POST request, so the arguments cannot be trusted
+// to match their TypeScript type or to have passed the wizard's validation.
+function parseInput(input: unknown): SubmitDefectInput | null {
+  if (!input || typeof input !== 'object') return null;
+  const { ccid, kycid, caseType, analystName, explanation } = input as Record<string, unknown>;
+
+  if (typeof ccid !== 'string' || !/^\d{16}$/.test(ccid)) return null;
+  if (!isNonEmptyString(kycid) || !isNonEmptyString(explanation) || !isNonEmptyString(analystName)) return null;
+
+  const knownCaseType = CASE_TYPES.find((type) => type === caseType);
+  if (!knownCaseType) return null;
+
+  return { ccid, kycid, caseType: knownCaseType, analystName, explanation };
+}
+
+/** Stores a defect for the named analyst. Failures are returned, not thrown, so the wizard can report them. */
+export async function submitDefect(input: SubmitDefectInput): Promise<SubmitDefectResult> {
+  const values = parseInput(input);
+  if (!values) {
+    return { ok: false, reason: 'invalid-input', message: 'Los datos del defecto no son válidos.' };
+  }
+
+  try {
+    const analystId = await findProfileIdByFullName(values.analystName);
+    if (!analystId) return { ok: false, reason: 'analyst-not-found' };
+
+    const created = await createDefect({
+      ccid: values.ccid,
+      kycid: values.kycid,
+      caseType: values.caseType,
+      analystId,
+      explanation: values.explanation,
+    });
+
+    return { ok: true, id: created.id, status: created.status };
+  } catch (error) {
+    // The full error stays in the server log; database details are not sent to the browser.
+    console.error('Error creating defect:', error);
+    return { ok: false, reason: 'database-error', message: 'No se pudo guardar el defecto en la base de datos.' };
+  }
+}

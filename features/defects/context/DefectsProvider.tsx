@@ -1,11 +1,11 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import { DEMO_DEFECTS } from '@/data/demo-defects';
 import { toggleReadReceipt } from '@/features/defects/lib/readReceipts';
-import { getDefects } from '@/services/defects';
+import { useStreamedData } from '@/hooks/useStreamedData';
 import type { Defect } from '@/types/defect';
 import type { TeamMember } from '@/types/team';
 
-// Edits, deletions and read receipts are kept in memory only; Supabase is the source on reload.
+// Edits, deletions and read receipts are kept in memory only; the database is the source on reload.
 type DefectsContextValue = {
   defects: Defect[];
   addDefect: (defect: Defect) => void;
@@ -17,24 +17,16 @@ type DefectsContextValue = {
 
 const DefectsContext = createContext<DefectsContextValue | null>(null);
 
-export function DefectsProvider({ children }: { children: ReactNode }) {
+type DefectsProviderProps = {
+  /** Registry read started on the server by the dashboard layout. */
+  defectsPromise: Promise<Defect[]>;
+  children: ReactNode;
+};
+
+export function DefectsProvider({ defectsPromise, children }: DefectsProviderProps) {
   const [defects, setDefects] = useState<Defect[]>([]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    getDefects()
-      .then((data) => {
-        if (!cancelled) setDefects(data);
-      })
-      .catch((error: unknown) => {
-        console.error('Error loading defects:', error);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  useStreamedData(defectsPromise, setDefects, 'Error loading defects:');
 
   const addDefect = useCallback((defect: Defect) => setDefects((prev) => [defect, ...prev]), []);
 

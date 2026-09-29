@@ -1,6 +1,7 @@
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/constants/routes';
 import { useDefects } from '@/features/defects/context/DefectsProvider';
+import { submitDefect, type SubmitDefectResult } from '@/features/new-defect/actions';
 import { useNewDefectDraft } from '@/features/new-defect/context/NewDefectDraftProvider';
 import { buildDefectRecord } from '@/features/new-defect/lib/buildDefectRecord';
 import { getSubmissionIssue } from '@/features/new-defect/lib/validation';
@@ -8,10 +9,8 @@ import { useTeam } from '@/features/team/context/TeamProvider';
 import { nowTimestamp } from '@/lib/dates';
 import { getErrorMessage } from '@/lib/errors';
 import { useToast } from '@/providers/ToastProvider';
-import { insertDefect } from '@/services/defects';
-import { findProfileIdByFullName } from '@/services/profiles';
 
-/** Validates the draft, stores the defect in Supabase and adds it to the registry. */
+/** Validates the draft, stores the defect in the database and adds it to the registry. */
 export function useSubmitNewDefect() {
   const router = useRouter();
   const { currentUser } = useTeam();
@@ -30,29 +29,32 @@ export function useSubmitNewDefect() {
     const analystName = analyst || currentUser.name || '';
     const record = buildDefectRecord({ draft, owner: currentUser, analystName, resolvedBy, createdAt: nowTimestamp() });
 
-    const analystId = await findProfileIdByFullName(analystName);
-    if (!analystId) {
-      alert(`No se encontró el analista "${analystName}" en Supabase.`);
-      return;
-    }
-
-    let inserted;
+    let result: SubmitDefectResult;
     try {
-      inserted = await insertDefect({
+      result = await submitDefect({
         ccid: draft.ccid,
         kycid: draft.kycid,
-        case_type: draft.caseType.toLowerCase(),
-        analyst_id: analystId,
-        analyst_context: draft.explanation,
-        status: 'draft',
+        caseType: draft.caseType,
+        analystName,
+        explanation: draft.explanation,
       });
     } catch (error) {
+      // The request itself failed (network or server unavailable).
       console.error('Error creating defect:', error);
       alert(`Error guardando el defecto:\n${getErrorMessage(error)}`);
       return;
     }
 
-    addDefect({ ...record, id: inserted.id, status: inserted.status });
+    if (!result.ok) {
+      if (result.reason === 'analyst-not-found') {
+        alert(`No se encontró el analista "${analystName}" en Supabase.`);
+      } else {
+        alert(`Error guardando el defecto:\n${result.message}`);
+      }
+      return;
+    }
+
+    addDefect({ ...record, id: result.id, status: result.status });
     showToast(`Defect (${record.ccid} / ${record.kycid}) successfully logged into registry!`);
     resetSubmittedFields();
     router.push(ROUTES.defects);

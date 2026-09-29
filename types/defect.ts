@@ -39,7 +39,7 @@ export type ReadReceipt = {
 };
 
 export type Defect = {
-  /** Technical Supabase id. Demo records do not have one. Never shown as the defect id. */
+  /** Technical database id. Demo records do not have one. Never shown as the defect id. */
   id?: string;
   ccid: string;
   kycid: string;
