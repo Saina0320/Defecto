@@ -1,6 +1,7 @@
 'use server';
 
 import { CASE_TYPES } from '@/constants/categories';
+import { getCurrentUser } from '@/lib/auth/session';
 import { createDefect } from '@/services/defects';
 import { findProfileIdByFullName } from '@/services/profiles';
 import type { CaseType } from '@/types/defect';
@@ -15,6 +16,7 @@ export type SubmitDefectInput = {
 
 export type SubmitDefectResult =
   | { ok: true; id: string; status: string }
+  | { ok: false; reason: 'not-signed-in' }
   | { ok: false; reason: 'analyst-not-found' }
   | { ok: false; reason: 'invalid-input' | 'database-error'; message: string };
 
@@ -45,6 +47,10 @@ export async function submitDefect(input: SubmitDefectInput): Promise<SubmitDefe
   }
 
   try {
+    // A Server Function can be called without opening any page, so the session is checked here too.
+    const user = await getCurrentUser();
+    if (!user) return { ok: false, reason: 'not-signed-in' };
+
     const analystId = await findProfileIdByFullName(values.analystName);
     if (!analystId) return { ok: false, reason: 'analyst-not-found' };
 

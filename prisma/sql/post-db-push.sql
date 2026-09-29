@@ -1,10 +1,10 @@
 -- KYC Defect Hub: database objects that the Prisma schema cannot describe.
 --
 -- When to run it
---   Only when building the database from scratch:
+--   When building the database from scratch, and after a schema change that adds a table
+--   or anything to this file:
 --     1. npx prisma db push      (tables, columns, defaults, keys and indexes)
 --     2. run this file by hand   (Supabase SQL Editor, or psql -f prisma/sql/post-db-push.sql)
---   The current database already has sections 1 and 2, and section 4 is the Supabase default.
 --
 -- What is NOT here, because it is in prisma/schema.prisma and `prisma db push` creates it:
 --   primary keys, foreign keys (with their ON DELETE rules), unique indexes, indexes
@@ -55,8 +55,25 @@ $$;
 --    Allowed values of the text columns. Prisma has no syntax for CHECK.
 -- ---------------------------------------------------------------------------
 
+-- The SOE ID is what users type to sign in, and the lookup is an exact match on the lowercase
+-- value without surrounding whitespace. Stored values are brought to that form before the format
+-- is enforced. If two profiles end up with the same SOE ID, profiles_soe_id_key stops the script.
+update public.profiles
+   set soe_id = lower(btrim(soe_id, E' \t\r\n'))
+ where soe_id <> lower(btrim(soe_id, E' \t\r\n'));
+
 do $$
 begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'profiles_soe_id_format_check' and conrelid = 'public.profiles'::regclass
+  ) then
+    -- Keep in sync with SOE_ID_PATTERN in features/auth/lib/soeId.ts.
+    alter table public.profiles
+      add constraint profiles_soe_id_format_check
+      check (soe_id ~ '^[a-z]{2}[0-9]{5}$');
+  end if;
+
   if not exists (
     select 1 from pg_constraint
     where conname = 'profiles_role_check' and conrelid = 'public.profiles'::regclass
@@ -103,8 +120,12 @@ $$;
 --    Enabling it without policies therefore closes the Data API and leaves Prisma unaffected.
 --
 --    Add policies below only if something must use the Data API again.
+--
+--    `sessions` must never be left open: through the Data API anyone could insert a session
+--    for any profile and sign in as that user. Run this file right after `prisma db push`.
 -- ---------------------------------------------------------------------------
 
+alter table public.sessions     enable row level security;
 alter table public.profiles     enable row level security;
 alter table public.defects      enable row level security;
 alter table public.resolutions  enable row level security;

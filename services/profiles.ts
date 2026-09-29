@@ -3,7 +3,7 @@ import type { Prisma } from '@/generated/prisma/client';
 import { getPrisma } from '@/lib/prisma';
 import type { TeamMember, UserRole } from '@/types/team';
 
-const teamMemberSelect = {
+export const teamMemberSelect = {
   id: true,
   soeId: true,
   firstName: true,
@@ -20,7 +20,7 @@ function toUserRole(role: string): UserRole {
   return 'Analyst';
 }
 
-function toTeamMember(profile: TeamMemberRecord): TeamMember {
+export function toTeamMember(profile: TeamMemberRecord): TeamMember {
   return {
     id: profile.id,
     name: `${profile.firstName} ${profile.lastName}`,
@@ -40,6 +40,19 @@ export async function getActiveProfiles(): Promise<TeamMember[]> {
   });
 
   return profiles.map(toTeamMember);
+}
+
+/**
+ * The active profile that owns the SOE ID, or null. Expects the SOE ID as profiles store it
+ * (see features/auth/lib/soeId.ts); profiles_soe_id_key guarantees at most one match.
+ */
+export async function findActiveProfileBySoeId(soeId: string): Promise<TeamMember | null> {
+  const profile = await getPrisma().profile.findUnique({
+    where: { soeId },
+    select: teamMemberSelect,
+  });
+
+  return profile?.active ? toTeamMember(profile) : null;
 }
 
 /** Looks up a profile by "First Last" name. Returns null (and logs) unless exactly one matches. */

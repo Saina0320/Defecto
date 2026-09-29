@@ -6,19 +6,9 @@ import { usePersistentState } from '@/hooks/usePersistentState';
 import { useStreamedData } from '@/hooks/useStreamedData';
 import type { TeamMember } from '@/types/team';
 
-// Shown only while the roster is empty.
-const PLACEHOLDER_USER: TeamMember = {
-  id: '',
-  name: 'Loading...',
-  role: 'Analyst',
-  email: '',
-  initials: 'LO',
-  status: 'Active',
-};
-
 type TeamContextValue = {
   teamUsers: TeamMember[];
-  /** The simulated persona: the explicitly selected member, or the first one in the roster. */
+  /** The signed-in user, or the persona explicitly selected to simulate another member. */
   currentUser: TeamMember;
   selectedUserId: string | null;
   selectUser: (userId: string) => TeamMember | undefined;
@@ -30,12 +20,14 @@ type TeamContextValue = {
 const TeamContext = createContext<TeamContextValue | null>(null);
 
 type TeamProviderProps = {
+  /** Owner of the session, verified on the server by the dashboard layout. */
+  authenticatedUser: TeamMember;
   /** Active profiles read started on the server by the dashboard layout. */
   teamPromise: Promise<TeamMember[]>;
   children: ReactNode;
 };
 
-export function TeamProvider({ teamPromise, children }: TeamProviderProps) {
+export function TeamProvider({ authenticatedUser, teamPromise, children }: TeamProviderProps) {
   // The cached roster renders immediately; the database profiles replace it once loaded.
   const [teamUsers, setTeamUsers] = usePersistentState(STORAGE_KEYS.USERS, DEMO_TEAM, parseStoredTeam);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -43,8 +35,8 @@ export function TeamProvider({ teamPromise, children }: TeamProviderProps) {
   useStreamedData(teamPromise, setTeamUsers, 'Error loading profiles:');
 
   const currentUser = useMemo(
-    () => teamUsers.find((member) => member.id === selectedUserId) ?? teamUsers[0] ?? PLACEHOLDER_USER,
-    [selectedUserId, teamUsers]
+    () => teamUsers.find((member) => member.id === selectedUserId) ?? authenticatedUser,
+    [selectedUserId, teamUsers, authenticatedUser]
   );
 
   const selectUser = useCallback(

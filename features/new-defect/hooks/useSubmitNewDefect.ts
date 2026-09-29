@@ -1,4 +1,5 @@
 import { useRouter } from 'next/navigation';
+import { LOGIN_ROUTE } from '@/constants/auth';
 import { ROUTES } from '@/constants/routes';
 import { useDefects } from '@/features/defects/context/DefectsProvider';
 import { submitDefect, type SubmitDefectResult } from '@/features/new-defect/actions';
@@ -46,7 +47,11 @@ export function useSubmitNewDefect() {
     }
 
     if (!result.ok) {
-      if (result.reason === 'analyst-not-found') {
+      if (result.reason === 'not-signed-in') {
+        alert('Tu sesión ha terminado. Inicia sesión de nuevo para registrar el defecto.');
+        // A full page load, so nothing of the ended session stays in memory.
+        window.location.assign(LOGIN_ROUTE);
+      } else if (result.reason === 'analyst-not-found') {
         alert(`No se encontró el analista "${analystName}" en Supabase.`);
       } else {
         alert(`Error guardando el defecto:\n${result.message}`);

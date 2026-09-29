@@ -9,8 +9,12 @@ import { ToastProvider } from '@/providers/ToastProvider';
 import type { Defect } from '@/types/defect';
 import type { TeamMember } from '@/types/team';
 
-/** Database reads started by the (dashboard) layout on the server; they resolve on the client. */
+/**
+ * What the (dashboard) layout hands over from the server: the signed-in user and the database
+ * reads it started, which resolve on the client.
+ */
 export type DashboardData = {
+  user: TeamMember;
   team: Promise<TeamMember[]>;
   defects: Promise<Defect[]>;
 };
@@ -24,7 +28,7 @@ export function AppProviders({ data, children }: { data: DashboardData; children
   return (
     <ThemeProvider>
       <ToastProvider>
-        <TeamProvider teamPromise={data.team}>
+        <TeamProvider authenticatedUser={data.user} teamPromise={data.team}>
           <DefectsProvider defectsPromise={data.defects}>
             <DefectFiltersProvider>
               <NewDefectDraftProvider>
