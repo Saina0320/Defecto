@@ -1,10 +1,11 @@
 'use server';
 
 import { CASE_TYPES } from '@/constants/categories';
+import { isKnownCategory } from '@/features/defects/lib/categories';
 import { getCurrentUser } from '@/lib/auth/session';
 import { createDefect } from '@/services/defects';
 import { findProfileIdByFullName } from '@/services/profiles';
-import type { CaseType } from '@/types/defect';
+import type { CaseType, DefectCategory } from '@/types/defect';
 
 export type SubmitDefectInput = {
   ccid: string;
@@ -12,6 +13,7 @@ export type SubmitDefectInput = {
   caseType: CaseType;
   analystName: string;
   explanation: string;
+  categories: DefectCategory[];
 };
 
 export type SubmitDefectResult =
@@ -28,7 +30,7 @@ function isNonEmptyString(value: unknown): value is string {
 // to match their TypeScript type or to have passed the wizard's validation.
 function parseInput(input: unknown): SubmitDefectInput | null {
   if (!input || typeof input !== 'object') return null;
-  const { ccid, kycid, caseType, analystName, explanation } = input as Record<string, unknown>;
+  const { ccid, kycid, caseType, analystName, explanation, categories } = input as Record<string, unknown>;
 
   if (typeof ccid !== 'string' || !/^\d{16}$/.test(ccid)) return null;
   if (!isNonEmptyString(kycid) || !isNonEmptyString(explanation) || !isNonEmptyString(analystName)) return null;
@@ -36,7 +38,10 @@ function parseInput(input: unknown): SubmitDefectInput | null {
   const knownCaseType = CASE_TYPES.find((type) => type === caseType);
   if (!knownCaseType) return null;
 
-  return { ccid, kycid, caseType: knownCaseType, analystName, explanation };
+  const isKnownForThisCaseType = (category: unknown): category is DefectCategory => isKnownCategory(knownCaseType, category);
+  if (!Array.isArray(categories) || !categories.every(isKnownForThisCaseType)) return null;
+
+  return { ccid, kycid, caseType: knownCaseType, analystName, explanation, categories };
 }
 
 /** Stores a defect for the named analyst. Failures are returned, not thrown, so the wizard can report them. */
@@ -60,6 +65,7 @@ export async function submitDefect(input: SubmitDefectInput): Promise<SubmitDefe
       caseType: values.caseType,
       analystId,
       explanation: values.explanation,
+      categories: values.categories,
     });
 
     return { ok: true, id: created.id, status: created.status };

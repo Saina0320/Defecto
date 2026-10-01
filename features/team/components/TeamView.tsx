@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { UserPlus } from 'lucide-react';
 import { useDefects } from '@/features/defects/context/DefectsProvider';
 import { AddAnalystModal } from '@/features/team/components/AddAnalystModal';
+import { DeactivateAnalystDialog } from '@/features/team/components/DeactivateAnalystDialog';
 import { TeamMemberCard } from '@/features/team/components/TeamMemberCard';
 import { useTeam } from '@/features/team/context/TeamProvider';
 import { getActiveAnalysts } from '@/features/team/lib/roster';
@@ -12,26 +13,47 @@ import { useTheme } from '@/providers/ThemeProvider';
 import { useToast } from '@/providers/ToastProvider';
 import type { TeamMember } from '@/types/team';
 
+const DEACTIVATE_ERROR_MESSAGES: Record<string, string> = {
+  forbidden: 'Permission denied: only Managers and Admins can deactivate analysts.',
+  self: 'You cannot deactivate your own profile.',
+  'not-found': 'This profile no longer exists.',
+  'not-an-analyst': 'Only Analyst team members can be deactivated from the roster.',
+  'database-error': 'Could not deactivate the analyst. Try again.',
+};
+
 export function TeamView() {
   const { t } = useTheme();
   const { defects } = useDefects();
   const { teamUsers, currentUser, decommissionAnalyst } = useTeam();
   const { showToast } = useToast();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [deactivateCandidate, setDeactivateCandidate] = useState<TeamMember | null>(null);
+  const [isDeactivating, setIsDeactivating] = useState(false);
+  const [deactivateError, setDeactivateError] = useState<string | null>(null);
   const canManageRoster = isSupervisorRole(currentUser.role);
 
-  const handleDecommission = (member: TeamMember) => {
-    if (member.role !== 'Analyst') {
-      alert('Only Analyst team members can be decommissioned from roster.');
+  const closeDeactivateDialog = () => {
+    if (isDeactivating) return;
+    setDeactivateCandidate(null);
+    setDeactivateError(null);
+  };
+
+  const handleConfirmDeactivate = async () => {
+    if (!deactivateCandidate || isDeactivating) return;
+
+    setIsDeactivating(true);
+    setDeactivateError(null);
+    const result = await decommissionAnalyst(deactivateCandidate.id);
+    setIsDeactivating(false);
+
+    if (!result.ok) {
+      // Deactivation failed: the dialog stays open, showing why, and the analyst stays active.
+      setDeactivateError(DEACTIVATE_ERROR_MESSAGES[result.reason] ?? 'Could not deactivate the analyst. Try again.');
       return;
     }
-    const confirmed = window.confirm(
-      `Are you sure you want to remove ${member.name} from the active team roster?\n\nHistorical defects and activity created by ${member.name} will be preserved for audit history.`
-    );
-    if (!confirmed) return;
 
-    decommissionAnalyst(member.id);
-    showToast(`${member.name} removed from active roster. Historical records preserved.`);
+    showToast(`${deactivateCandidate.name} deactivated. Historical records preserved.`);
+    setDeactivateCandidate(null);
   };
 
   return (
@@ -44,7 +66,7 @@ export function TeamView() {
           </div>
           <h3 className={`text-base font-bold ${t.headingText}`}>Team Capacity & Analyst Management</h3>
           <p className={`text-xs ${t.mutedText} mt-0.5`}>
-            View team roster and manage active members. Historical activity remains preserved when analysts are decommissioned.
+            View team roster and manage active members. Historical activity remains preserved when analysts are deactivated.
           </p>
         </div>
 
@@ -66,8 +88,8 @@ export function TeamView() {
             member={member}
             handledDefects={defects.filter((defect) => defect.analystName === member.name).length}
             onDecommission={
-              canManageRoster && member.role === 'Analyst' && member.status !== 'Decommissioned'
-                ? () => handleDecommission(member)
+              canManageRoster && member.role === 'Analyst' && member.status === 'Active' && member.id !== currentUser.id
+                ? () => setDeactivateCandidate(member)
                 : undefined
             }
           />
@@ -75,6 +97,15 @@ export function TeamView() {
       </div>
 
       {isAddModalOpen && <AddAnalystModal onClose={() => setIsAddModalOpen(false)} />}
+      {deactivateCandidate && (
+        <DeactivateAnalystDialog
+          member={deactivateCandidate}
+          isDeactivating={isDeactivating}
+          error={deactivateError}
+          onCancel={closeDeactivateDialog}
+          onConfirm={handleConfirmDeactivate}
+        />
+      )}
     </div>
   );
 }

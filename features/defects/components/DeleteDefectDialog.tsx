@@ -6,7 +6,7 @@ import type { Defect } from '@/types/defect';
 
 export function DeleteDefectDialog({ defect }: { defect: Defect }) {
   const { darkMode, t } = useTheme();
-  const { cancelDelete, confirmDelete } = useDefectDialogs();
+  const { cancelDelete, confirmDelete, isDeleting } = useDefectDialogs();
 
   return (
     <Modal className="max-w-md p-5 space-y-4">
@@ -22,16 +22,18 @@ export function DeleteDefectDialog({ defect }: { defect: Defect }) {
         <button
           type="button"
           onClick={cancelDelete}
-          className={`px-3 py-1.5 border ${darkMode ? 'border-neutral-700 text-neutral-300' : 'border-neutral-300 text-neutral-700'} rounded text-xs font-semibold cursor-pointer`}
+          disabled={isDeleting}
+          className={`px-3 py-1.5 border ${darkMode ? 'border-neutral-700 text-neutral-300' : 'border-neutral-300 text-neutral-700'} rounded text-xs font-semibold cursor-pointer disabled:cursor-wait disabled:opacity-60`}
         >
           Cancel
         </button>
         <button
           type="button"
           onClick={confirmDelete}
-          className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded text-xs cursor-pointer shadow-xs"
+          disabled={isDeleting}
+          className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded text-xs cursor-pointer shadow-xs disabled:cursor-wait disabled:bg-red-600/75 disabled:hover:bg-red-600/75"
         >
-          Confirm Delete
+          {isDeleting ? 'Deleting...' : 'Confirm Delete'}
         </button>
       </div>
     </Modal>

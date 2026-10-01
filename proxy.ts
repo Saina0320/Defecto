@@ -18,6 +18,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Everything except the build assets, which the login page itself needs.
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  // Everything except the build assets and the /public/brand images, both of which the
+  // login page itself needs to render while signed out.
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|brand/).*)'],
 };

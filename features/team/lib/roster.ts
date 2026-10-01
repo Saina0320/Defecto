@@ -16,23 +16,9 @@ export function getAcknowledgmentAudience(users: TeamMember[]): TeamMember[] {
   return users.filter((user) => user.status === 'Active' && user.role !== 'Admin');
 }
 
-export function createAnalystMember(users: TeamMember[], name: string, email: string): TeamMember {
-  const nextNumber = getAnalysts(users).length + 1;
-  const initials = name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .substring(0, 2)
-    .toUpperCase();
-
-  return {
-    id: `ANL-${String(nextNumber).padStart(2, '0')}`,
-    name: name.trim(),
-    role: 'Analyst',
-    email: email.trim(),
-    initials: initials || 'AN',
-    status: 'Active',
-  };
+/** The Citi email shown in the Add Analyst form: derived from the SOEID, never entered or stored. */
+export function toCitiEmail(soeId: string): string {
+  return `${soeId.trim().toLowerCase()}@citi.com`;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

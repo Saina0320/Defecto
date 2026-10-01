@@ -1,7 +1,14 @@
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from 'react';
 import { STORAGE_KEYS } from '@/constants/storage-keys';
 import { DEMO_TEAM } from '@/data/demo-team';
-import { createAnalystMember, parseStoredTeam } from '@/features/team/lib/roster';
+import {
+  addAnalystToRoster,
+  deactivateAnalyst,
+  reactivateAnalyst,
+  type AddAnalystResult,
+  type RosterActionResult,
+} from '@/features/team/actions';
+import { parseStoredTeam } from '@/features/team/lib/roster';
 import { usePersistentState } from '@/hooks/usePersistentState';
 import { useStreamedData } from '@/hooks/useStreamedData';
 import type { TeamMember } from '@/types/team';
@@ -10,8 +17,12 @@ type TeamContextValue = {
   teamUsers: TeamMember[];
   /** The signed-in user. */
   currentUser: TeamMember;
-  addAnalyst: (name: string, email: string) => TeamMember;
-  decommissionAnalyst: (memberId: string) => void;
+  /** Creates a Profile row in PostgreSQL. Only reflected in teamUsers once the server confirms it. */
+  addAnalyst: (fullName: string, soeId: string) => Promise<AddAnalystResult>;
+  /** Re-enables a deactivated profile found by SOEID, instead of creating a duplicate. */
+  reactivateAnalyst: (profileId: string) => Promise<RosterActionResult>;
+  /** Sets Profile.active = false. The row and its historical defects/reads/audit log are kept. */
+  decommissionAnalyst: (memberId: string) => Promise<RosterActionResult>;
 };
 
 const TeamContext = createContext<TeamContextValue | null>(null);
@@ -25,32 +36,46 @@ type TeamProviderProps = {
 };
 
 export function TeamProvider({ authenticatedUser, teamPromise, children }: TeamProviderProps) {
-  // The cached roster renders immediately; the database profiles replace it once loaded.
+  // The cached roster renders immediately; the database profiles replace it once loaded, and stay
+  // authoritative after that — every mutation below only updates local state from what the
+  // server actually persisted and returned, never optimistically.
   const [teamUsers, setTeamUsers] = usePersistentState(STORAGE_KEYS.USERS, DEMO_TEAM, parseStoredTeam);
 
   useStreamedData(teamPromise, setTeamUsers, 'Error loading profiles:');
 
-  const addAnalyst = useCallback(
-    (name: string, email: string) => {
-      const member = createAnalystMember(teamUsers, name, email);
-      setTeamUsers((prev) => [...prev, member]);
-      return member;
-    },
-    [teamUsers, setTeamUsers]
-  );
+  const addAnalyst = useCallback(async (fullName: string, soeId: string) => {
+    const result = await addAnalystToRoster({ fullName, soeId });
+    if (result.ok) {
+      setTeamUsers((prev) => [...prev, result.member]);
+    }
+    return result;
+  }, [setTeamUsers]);
 
-  const decommissionAnalyst = useCallback(
-    (memberId: string) => {
+  const reactivate = useCallback(async (profileId: string) => {
+    const result = await reactivateAnalyst(profileId);
+    if (result.ok) {
       setTeamUsers((prev) =>
-        prev.map((member) => (member.id === memberId ? { ...member, status: 'Decommissioned' } : member))
+        prev.some((member) => member.id === result.member.id)
+          ? prev.map((member) => (member.id === result.member.id ? result.member : member))
+          : [...prev, result.member]
       );
-    },
-    [setTeamUsers]
-  );
+    }
+    return result;
+  }, [setTeamUsers]);
+
+  const decommissionAnalyst = useCallback(async (memberId: string) => {
+    const result = await deactivateAnalyst(memberId);
+    if (result.ok) {
+      // The active roster (getActiveProfiles) never includes inactive profiles, so a deactivated
+      // member drops out of the list here too, matching what a refresh would show.
+      setTeamUsers((prev) => prev.filter((member) => member.id !== memberId));
+    }
+    return result;
+  }, [setTeamUsers]);
 
   const value = useMemo(
-    () => ({ teamUsers, currentUser: authenticatedUser, addAnalyst, decommissionAnalyst }),
-    [teamUsers, authenticatedUser, addAnalyst, decommissionAnalyst]
+    () => ({ teamUsers, currentUser: authenticatedUser, addAnalyst, reactivateAnalyst: reactivate, decommissionAnalyst }),
+    [teamUsers, authenticatedUser, addAnalyst, reactivate, decommissionAnalyst]
   );
 
   return <TeamContext.Provider value={value}>{children}</TeamContext.Provider>;

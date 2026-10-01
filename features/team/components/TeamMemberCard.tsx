@@ -24,9 +24,7 @@ export function TeamMemberCard({ member, handledDefects, onDecommission }: TeamM
             </div>
             <div>
               <h5 className={`font-bold text-xs ${t.headingText}`}>{member.name}</h5>
-              <span className={`text-[10px] ${t.mutedText} font-mono`}>
-                {member.id} • {member.role}
-              </span>
+              <span className={`text-[10px] ${t.mutedText}`}>• {member.role}</span>
             </div>
           </div>
           <span
@@ -42,7 +40,11 @@ export function TeamMemberCard({ member, handledDefects, onDecommission }: TeamM
 
         <div className={`p-2 rounded text-[11px] mb-3 ${darkMode ? 'bg-[#0B1426]' : 'bg-neutral-50'} text-neutral-600 dark:text-neutral-300`}>
           <span className={t.mutedText}>Email: </span>
-          <span className="font-mono">{member.email}</span>
+          {member.soeId ? (
+            <span className={`font-mono ${!darkMode ? 'text-[#0056B3]' : ''}`}>{member.soeId.toLowerCase()}@citi.com</span>
+          ) : (
+            <span className="font-mono">{member.email}</span>
+          )}
         </div>
       </div>
 
@@ -53,7 +55,7 @@ export function TeamMemberCard({ member, handledDefects, onDecommission }: TeamM
 
         {onDecommission && (
           <button onClick={onDecommission} className="text-red-500 hover:text-red-700 text-[11px] font-semibold hover:underline cursor-pointer">
-            Decommission
+            Deactivate
           </button>
         )}
       </div>

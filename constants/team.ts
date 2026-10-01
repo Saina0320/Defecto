@@ -1,7 +1,7 @@
 import type { UserRole } from '@/types/team';
 
 export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
-  Manager: 'Quality Lead (Supervisory)',
+  Manager: 'Team Lead (Manager)',
   Admin: 'Administrator',
   Analyst: 'KYC Analyst (Owner Permissions)',
 };

@@ -29,7 +29,6 @@ export function ReadMatrixModal({ defect }: { defect: Defect }) {
             <div key={user.id} className={`flex items-center justify-between p-2 rounded ${darkMode ? 'bg-[#0B1426]' : 'bg-neutral-50'}`}>
               <div>
                 <span className={`font-semibold ${t.headingText}`}>{user.name}</span>
-                <span className={`text-[10px] ${t.mutedText} font-mono ml-1`}>({user.id})</span>
               </div>
               {receipt ? (
                 <span className="text-emerald-600 dark:text-emerald-400 font-mono text-[10px] flex items-center gap-1 font-semibold">

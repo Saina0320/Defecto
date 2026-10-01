@@ -38,6 +38,7 @@ export function useSubmitNewDefect() {
         caseType: draft.caseType,
         analystName,
         explanation: draft.explanation,
+        categories: draft.categories,
       });
     } catch (error) {
       // The request itself failed (network or server unavailable).

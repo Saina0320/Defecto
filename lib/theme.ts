@@ -5,30 +5,32 @@ import type { UserRole } from '@/types/team';
 /** Tailwind class tokens for the app-controlled light/dark theme. */
 export function getThemeClasses(darkMode: boolean) {
   return {
-    appBg: darkMode ? 'bg-[#0B132B] text-[#F1F5F9]' : 'bg-[#F8F9FA] text-[#212529]',
+    appBg: darkMode ? 'bg-[#0B132B] text-[#F1F5F9]' : 'bg-[#EEF1F5] text-[#1A2433]',
     sidebarBg: darkMode
       ? 'bg-[#0A192F] border-r border-[#1E293B] shadow-[6px_0_30px_rgba(0,0,0,0.5)]'
       : 'bg-[#002D72] border-r border-[#001E4D]/80 shadow-[4px_0_24px_-2px_rgba(0,45,114,0.35)]',
     sidebarHeader: darkMode ? 'bg-[#071324] border-white/10' : 'bg-[#00245E] border-white/10',
-    headerBg: darkMode ? 'bg-[#111E38] border-[#1E2E4A]' : 'bg-white border-[#E9ECEF]',
-    headerText: darkMode ? 'text-white' : 'text-[#212529]',
-    cardBg: darkMode ? 'bg-[#111E38] border-[#1E2E4A] shadow-md' : 'bg-white border-[#E9ECEF] shadow-sm',
-    tableHeaderBg: darkMode ? 'bg-[#0F1A30] border-[#1E2E4A]' : 'bg-[#F1F3F5] border-[#E9ECEF]',
+    headerBg: darkMode ? 'bg-[#111E38] border-[#1E2E4A]' : 'bg-[#E6EBF0] border-[#D8E0E8]',
+    headerText: darkMode ? 'text-white' : 'text-[#1A2433]',
+    cardBg: darkMode
+      ? 'bg-[#111E38] border-[#1E2E4A] shadow-md'
+      : 'bg-white border-[#DCE3EA] shadow-[0_1px_3px_rgba(15,23,42,0.06),0_1px_2px_rgba(15,23,42,0.04)]',
+    tableHeaderBg: darkMode ? 'bg-[#0F1A30] border-[#1E2E4A]' : 'bg-[#F0F3F6] border-[#DCE3EA]',
     tableRowHover: darkMode ? 'hover:bg-[#162746]/60' : 'hover:bg-blue-50/40',
-    tableBorder: darkMode ? 'divide-[#1E2E4A] border-[#1E2E4A]' : 'divide-neutral-100 border-[#E9ECEF]',
-    innerBoxBg: darkMode ? 'bg-[#0B1426] border-[#1E2E4A]' : 'bg-neutral-50 border-neutral-200',
+    tableBorder: darkMode ? 'divide-[#1E2E4A] border-[#1E2E4A]' : 'divide-[#E7ECF1] border-[#DCE3EA]',
+    innerBoxBg: darkMode ? 'bg-[#0B1426] border-[#1E2E4A]' : 'bg-[#F3F5F8] border-[#DCE3EA]',
     inputBg: darkMode
       ? 'bg-[#0B1426] border-[#2A3F66] text-white placeholder:text-neutral-500'
-      : 'bg-[#F8F9FA] border-[#DEE2E6] text-neutral-800',
-    mutedText: darkMode ? 'text-[#94A3B8]' : 'text-neutral-500',
-    headingText: darkMode ? 'text-white' : 'text-neutral-900',
+      : 'bg-[#F3F5F8] border-[#D8E0E8] text-[#1A2433]',
+    mutedText: darkMode ? 'text-[#94A3B8]' : 'text-[#5B6B80]',
+    headingText: darkMode ? 'text-white' : 'text-[#1A2433]',
     cyanTagText: darkMode ? 'text-[#38BDF8]' : 'text-[#0056B3]',
     /** Border color for section separators inside cards and forms. */
-    dividerSoft: darkMode ? 'border-[#1E2E4A]' : 'border-neutral-100',
+    dividerSoft: darkMode ? 'border-[#1E2E4A]' : 'border-[#E7ECF1]',
     /** Border color for modal frames and footer separators. */
-    divider: darkMode ? 'border-[#1E2E4A]' : 'border-neutral-200',
+    divider: darkMode ? 'border-[#1E2E4A]' : 'border-[#DCE3EA]',
     /** Border color for separators inside upload panels and evidence lists. */
-    dividerNeutral: darkMode ? 'border-neutral-700' : 'border-neutral-200',
+    dividerNeutral: darkMode ? 'border-neutral-700' : 'border-[#DCE3EA]',
   };
 }
 

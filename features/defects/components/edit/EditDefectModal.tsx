@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react';
-import { Edit3, Save, X } from 'lucide-react';
+import { AlertTriangle, Edit3, Save, X } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { CASE_TYPES } from '@/constants/categories';
+import { setCategories, type SetCategoriesResult } from '@/features/defects/actions';
 import { EditCategoryGrid } from '@/features/defects/components/edit/EditCategoryGrid';
 import { useDefectDialogs } from '@/features/defects/context/DefectDialogsProvider';
 import { toggleCategory } from '@/features/defects/lib/categories';
@@ -10,17 +11,41 @@ import { sanitizeCcid } from '@/features/defects/lib/identifiers';
 import { useTheme } from '@/providers/ThemeProvider';
 import type { Defect, DefectResolution } from '@/types/defect';
 
+const CATEGORY_SAVE_ERROR_MESSAGES: Record<string, string> = {
+  forbidden: 'Permission denied: you can only edit defects you created.',
+  'not-found': 'This defect no longer exists.',
+  'invalid-categories': 'One or more selected categories are not valid for this case type.',
+  'database-error': 'Could not save the categories. Try again.',
+};
+
 export function EditDefectModal({ defect }: { defect: Defect }) {
   const { darkMode, t } = useTheme();
   const { closeEdit, saveEdit } = useDefectDialogs();
   const [draft, setDraft] = useState<DefectEditDraft>(() => createEditDraft(defect));
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const update = (patch: Partial<DefectEditDraft>) => setDraft((prev) => ({ ...prev, ...patch }));
   const updateResolution = (patch: Partial<DefectResolution>) =>
     setDraft((prev) => ({ ...prev, resolution: { ...prev.resolution, ...patch } }));
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  // Categories are persisted in PostgreSQL before anything else about the edit is applied
+  // locally; the rest of the form (CCID, explanation, resolution, ...) stays local-only, as it
+  // was before this fix — only category persistence was in scope.
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!defect.id || isSaving) return;
+
+    setIsSaving(true);
+    setSaveError(null);
+    const result: SetCategoriesResult = await setCategories(defect.id, draft.selectedCategories);
+    setIsSaving(false);
+
+    if (!result.ok) {
+      setSaveError(CATEGORY_SAVE_ERROR_MESSAGES[result.reason] ?? 'Could not save the categories. Try again.');
+      return;
+    }
+
     saveEdit(defect.ccid, finalizeEditedDefect(draft));
   };
 
@@ -146,16 +171,29 @@ export function EditDefectModal({ defect }: { defect: Defect }) {
           </div>
         </div>
 
+        {saveError && (
+          <p className="p-2 rounded border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30 flex items-start gap-2 text-red-700 dark:text-red-300">
+            <AlertTriangle className="w-3.5 h-3.5 mt-px flex-shrink-0" />
+            <span>{saveError}</span>
+          </p>
+        )}
+
         <div className={`flex justify-end gap-2 pt-3 border-t ${t.divider}`}>
-          <button type="button" onClick={closeEdit} className={`px-4 py-2 border ${secondaryButtonClass} rounded font-semibold cursor-pointer`}>
+          <button
+            type="button"
+            onClick={closeEdit}
+            disabled={isSaving}
+            className={`px-4 py-2 border ${secondaryButtonClass} rounded font-semibold cursor-pointer disabled:cursor-wait disabled:opacity-60`}
+          >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-5 py-2 bg-[#003EA4] hover:bg-[#002D72] text-white font-bold rounded flex items-center gap-1.5 shadow cursor-pointer"
+            disabled={isSaving}
+            className="px-5 py-2 bg-[#003EA4] hover:bg-[#002D72] text-white font-bold rounded flex items-center gap-1.5 shadow cursor-pointer disabled:cursor-wait disabled:bg-[#003EA4]/75 disabled:hover:bg-[#003EA4]/75"
           >
             <Save className="w-4 h-4" />
-            <span>Save Changes</span>
+            <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
           </button>
         </div>
       </form>

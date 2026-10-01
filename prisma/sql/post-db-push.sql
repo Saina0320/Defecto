@@ -47,6 +47,15 @@ begin
     alter table public.defect_reads
       add constraint defect_reads_defect_id_user_id_key unique using index defect_reads_defect_id_user_id_key;
   end if;
+
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'defect_categories_defect_id_section_name_key' and conrelid = 'public.defect_categories'::regclass
+  ) then
+    alter table public.defect_categories
+      add constraint defect_categories_defect_id_section_name_key
+      unique using index defect_categories_defect_id_section_name_key;
+  end if;
 end
 $$;
 
@@ -109,6 +118,15 @@ begin
       add constraint evidence_category_check
       check (category = any (array['qc'::text, 'supporting'::text, 'resolution'::text]));
   end if;
+
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'defect_categories_section_check' and conrelid = 'public.defect_categories'::regclass
+  ) then
+    alter table public.defect_categories
+      add constraint defect_categories_section_check
+      check (section = any (array['core'::text, 'appendix'::text]));
+  end if;
 end
 $$;
 
@@ -125,14 +143,15 @@ $$;
 --    for any profile and sign in as that user. Run this file right after `prisma db push`.
 -- ---------------------------------------------------------------------------
 
-alter table public.sessions     enable row level security;
-alter table public.profiles     enable row level security;
-alter table public.defects      enable row level security;
-alter table public.resolutions  enable row level security;
-alter table public.defect_reads enable row level security;
-alter table public.audit_log    enable row level security;
-alter table public.qc_findings  enable row level security;
-alter table public.evidence     enable row level security;
+alter table public.sessions          enable row level security;
+alter table public.profiles          enable row level security;
+alter table public.defects           enable row level security;
+alter table public.resolutions       enable row level security;
+alter table public.defect_reads      enable row level security;
+alter table public.audit_log         enable row level security;
+alter table public.qc_findings       enable row level security;
+alter table public.evidence          enable row level security;
+alter table public.defect_categories enable row level security;
 
 -- ---------------------------------------------------------------------------
 -- 4. Time zone

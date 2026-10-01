@@ -5,5 +5,10 @@ export function todayIsoDate(): string {
 
 /** `YYYY-MM-DD HH:mm` in UTC, the format used for uploads and read receipts. */
 export function nowTimestamp(): string {
-  return new Date().toISOString().replace('T', ' ').substring(0, 16);
+  return formatTimestamp(new Date());
+}
+
+/** Formats a Date the way nowTimestamp() formats the current time, for values read back from the database. */
+export function formatTimestamp(date: Date): string {
+  return date.toISOString().replace('T', ' ').substring(0, 16);
 }

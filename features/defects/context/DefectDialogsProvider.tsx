@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { deleteDefect } from '@/features/defects/actions';
 import { useDefects } from '@/features/defects/context/DefectsProvider';
 import { getDefectKey } from '@/features/defects/lib/identifiers';
 import { useTeam } from '@/features/team/context/TeamProvider';
@@ -24,7 +25,8 @@ type DefectDialogsContextValue = {
   deleteCandidate: Defect | null;
   requestDelete: (defect: Defect) => void;
   cancelDelete: () => void;
-  confirmDelete: () => void;
+  confirmDelete: () => Promise<void>;
+  isDeleting: boolean;
 };
 
 const DefectDialogsContext = createContext<DefectDialogsContextValue | null>(null);
@@ -40,6 +42,7 @@ export function DefectDialogsProvider({ children }: { children: ReactNode }) {
   const [isReadMatrixOpen, setIsReadMatrixOpen] = useState(false);
   const [editingDefect, setEditingDefect] = useState<Defect | null>(null);
   const [deleteCandidate, setDeleteCandidate] = useState<Defect | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const selectedDefect = useMemo(
     () => (selectedKey === null ? null : (defects.find((defect) => getDefectKey(defect) === selectedKey) ?? null)),
@@ -91,16 +94,32 @@ export function DefectDialogsProvider({ children }: { children: ReactNode }) {
 
   const cancelDelete = useCallback(() => setDeleteCandidate(null), []);
 
-  const confirmDelete = useCallback(() => {
-    if (!deleteCandidate) return;
-    const targetCcid = deleteCandidate.ccid;
+  // Deletion is only reflected in the UI after the server confirms the database row is gone —
+  // never optimistically, so a rejected or failed deletion leaves the defect exactly as it was.
+  const confirmDelete = useCallback(async () => {
+    if (!deleteCandidate?.id || isDeleting) return;
+    const { id: defectId, ccid: targetCcid } = deleteCandidate;
+
+    setIsDeleting(true);
+    const result = await deleteDefect(defectId);
+    setIsDeleting(false);
+
+    if (!result.ok) {
+      showToast(
+        result.reason === 'forbidden'
+          ? 'Permission denied: you can only delete defects you created.'
+          : 'Could not delete the defect. Try again.'
+      );
+      return;
+    }
+
     removeDefect(targetCcid);
     if (selectedDefect?.ccid === targetCcid) {
       setSelectedKey(null);
     }
     setDeleteCandidate(null);
     showToast(`Defect (${targetCcid}) deleted from registry.`);
-  }, [deleteCandidate, removeDefect, selectedDefect, showToast]);
+  }, [deleteCandidate, isDeleting, removeDefect, selectedDefect, showToast]);
 
   const value = useMemo(
     () => ({
@@ -118,6 +137,7 @@ export function DefectDialogsProvider({ children }: { children: ReactNode }) {
       requestDelete,
       cancelDelete,
       confirmDelete,
+      isDeleting,
     }),
     [
       selectedDefect,
@@ -134,6 +154,7 @@ export function DefectDialogsProvider({ children }: { children: ReactNode }) {
       requestDelete,
       cancelDelete,
       confirmDelete,
+      isDeleting,
     ]
   );
 
