@@ -2,6 +2,7 @@ import { useRouter } from 'next/navigation';
 import { LOGIN_ROUTE } from '@/constants/auth';
 import { ROUTES } from '@/constants/routes';
 import { useDefects } from '@/features/defects/context/DefectsProvider';
+import { uploadDefectEvidence } from '@/features/evidence/actions';
 import { submitDefect, type SubmitDefectResult } from '@/features/new-defect/actions';
 import { useNewDefectDraft } from '@/features/new-defect/context/NewDefectDraftProvider';
 import { buildDefectRecord } from '@/features/new-defect/lib/buildDefectRecord';
@@ -61,6 +62,29 @@ export function useSubmitNewDefect() {
     }
 
     addDefect({ ...record, id: result.id, status: result.status });
+
+    // The defect exists now, so its id is known and the attached files can be uploaded to
+    // Storage. A failure here does not undo the defect itself — it's reported, not blocking.
+    const formData = new FormData();
+    if (draft.qcFileRaw) formData.set('qcFile', draft.qcFileRaw);
+    if (draft.finalZipRaw) formData.set('finalZip', draft.finalZipRaw);
+    for (const file of draft.evidenceFilesRaw) formData.append('evidence', file);
+
+    if (draft.qcFileRaw || draft.finalZipRaw || draft.evidenceFilesRaw.length > 0) {
+      try {
+        const uploadResult = await uploadDefectEvidence(result.id, formData);
+        const failures = [uploadResult.qcFile, uploadResult.finalZip, ...uploadResult.resolutionEvidence].filter(
+          (r): r is Extract<typeof r, { ok: false }> => r !== null && !r.ok
+        );
+        if (failures.length > 0) {
+          showToast(`Defect saved, but ${failures.length} file(s) failed to upload. Open the defect to retry.`);
+        }
+      } catch (error) {
+        console.error('Error uploading defect evidence:', error);
+        showToast('Defect saved, but its files failed to upload.');
+      }
+    }
+
     showToast(`Defect (${record.ccid} / ${record.kycid}) successfully logged into registry!`);
     resetSubmittedFields();
     router.push(ROUTES.defects);

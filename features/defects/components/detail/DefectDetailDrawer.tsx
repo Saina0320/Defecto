@@ -59,6 +59,7 @@ export function DefectDetailDrawer({ defect }: { defect: Defect }) {
                 <DrawerFileCard
                   icon={FileText}
                   iconClassName="w-5 h-5 text-red-500 flex-shrink-0"
+                  evidenceId={defect.qcFile.id}
                   fileName={defect.qcFile.name}
                   meta={<>{defect.qcFile.size} • Uploaded {defect.qcFile.uploadDate || defect.dateCreated}</>}
                   downloadTitle="Download QC Findings"
@@ -73,6 +74,7 @@ export function DefectDetailDrawer({ defect }: { defect: Defect }) {
                 <DrawerFileCard
                   icon={FolderArchive}
                   iconClassName="w-5 h-5 text-amber-500 flex-shrink-0"
+                  evidenceId={defect.finalZipFile.id}
                   fileName={defect.finalZipFile.name}
                   meta={<>{defect.finalZipFile.size} • ZIP Archive</>}
                   downloadTitle="Download ZIP"
@@ -101,6 +103,22 @@ export function DefectDetailDrawer({ defect }: { defect: Defect }) {
                   </span>
                 </div>
               </div>
+
+              {resolution && resolution.evidenceFiles.length > 0 && (
+                <div className="mt-2 space-y-1.5">
+                  {resolution.evidenceFiles.map((file) => (
+                    <DrawerFileCard
+                      key={file.id}
+                      icon={FileText}
+                      iconClassName="w-5 h-5 text-blue-500 flex-shrink-0"
+                      evidenceId={file.id}
+                      fileName={file.name}
+                      meta={file.size}
+                      downloadTitle="Download Resolution Evidence"
+                    />
+                  ))}
+                </div>
+              )}
             </DrawerSection>
 
             <DrawerSection title="4. Read & Acknowledgment Status">

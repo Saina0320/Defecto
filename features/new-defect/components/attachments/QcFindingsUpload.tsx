@@ -2,7 +2,8 @@ import { FileText } from 'lucide-react';
 import { AttachedFileCard } from '@/features/new-defect/components/attachments/AttachedFileCard';
 import { UploadDropzone } from '@/features/new-defect/components/attachments/UploadDropzone';
 import { useNewDefectDraft } from '@/features/new-defect/context/NewDefectDraftProvider';
-import { createQcFindingsFile } from '@/features/new-defect/lib/mockAttachments';
+import { previewQcFindingsFile } from '@/features/new-defect/lib/attachmentPreview';
+import { useTeam } from '@/features/team/context/TeamProvider';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useToast } from '@/providers/ToastProvider';
 
@@ -10,14 +11,16 @@ import { useToast } from '@/providers/ToastProvider';
 export function QcFindingsUpload() {
   const { darkMode, t } = useTheme();
   const { showToast } = useToast();
+  const { currentUser } = useTeam();
   const { draft, updateDraft } = useNewDefectDraft();
 
   const attach = () => {
-    if (!draft.qcFileName) {
-      alert('Enter a file name');
-      return;
-    }
-    updateDraft({ qcFile: createQcFindingsFile(draft.qcFileName), qcFileName: '' });
+    if (!draft.qcFilePending) return;
+    updateDraft({
+      qcFile: previewQcFindingsFile(draft.qcFilePending, currentUser.name),
+      qcFileRaw: draft.qcFilePending,
+      qcFilePending: null,
+    });
     showToast('Attached Checker QC Findings file.');
   };
 
@@ -41,7 +44,7 @@ export function QcFindingsUpload() {
             fileName={draft.qcFile.name}
             meta={<>{draft.qcFile.size} • Uploaded</>}
             removeTitle="Remove file"
-            onRemove={() => updateDraft({ qcFile: null })}
+            onRemove={() => updateDraft({ qcFile: null, qcFileRaw: null })}
           />
         ) : (
           <UploadDropzone
@@ -49,9 +52,10 @@ export function QcFindingsUpload() {
             iconClassName="w-6 h-6 mx-auto text-red-600"
             title="Upload Checker Findings File"
             subtitle="PDF, DOCX, or scan file provided by QC Checker"
-            placeholder="e.g. QC_Findings_Report.pdf"
-            fileName={draft.qcFileName}
-            onFileNameChange={(qcFileName) => updateDraft({ qcFileName })}
+            inputId="qc-findings-file"
+            accept=".pdf,.doc,.docx,image/*"
+            pendingFile={draft.qcFilePending}
+            onPendingFileChange={(qcFilePending) => updateDraft({ qcFilePending })}
             onAttach={attach}
             attachButtonClassName="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded text-xs cursor-pointer"
           />

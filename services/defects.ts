@@ -1,9 +1,10 @@
 import 'server-only';
 import type { Prisma } from '@/generated/prisma/client';
 import { formatTimestamp } from '@/lib/dates';
+import { formatFileSize } from '@/lib/fileSize';
 import { getPrisma } from '@/lib/prisma';
 import { toUserRole } from '@/services/profiles';
-import type { CaseType, CategorySection, Defect, DefectCategory, ReadReceipt } from '@/types/defect';
+import type { AttachedFile, CaseType, CategorySection, Defect, DefectCategory, EvidenceFile, ReadReceipt } from '@/types/defect';
 
 const defectSelect = {
   id: true,
@@ -23,9 +24,22 @@ const defectSelect = {
     },
   },
   categories: { select: { section: true, name: true } },
+  evidence: {
+    orderBy: { uploadedAt: 'desc' },
+    select: {
+      id: true,
+      fileName: true,
+      filePath: true,
+      fileSize: true,
+      category: true,
+      uploadedAt: true,
+      uploadedBy: { select: { firstName: true, lastName: true } },
+    },
+  },
 } satisfies Prisma.DefectSelect;
 
 type DefectRecord = Prisma.DefectGetPayload<{ select: typeof defectSelect }>;
+type EvidenceRow = DefectRecord['evidence'][number];
 
 function toReadReceipt(read: DefectRecord['reads'][number]): ReadReceipt {
   return {
@@ -44,7 +58,40 @@ function toDbSection(section: CategorySection): string {
   return section === 'CORE' ? 'core' : 'appendix';
 }
 
+/** The real uploader's name, resolved from Evidence.uploadedById -> Profile. Never a role or a guess. */
+function toUploaderName(evidence: EvidenceRow): string {
+  const profile = evidence.uploadedBy;
+  if (!profile) return 'Unknown uploader';
+  return `${profile.firstName} ${profile.lastName}`;
+}
+
+function toAttachedFile(evidence: EvidenceRow): AttachedFile {
+  return {
+    id: evidence.id,
+    name: evidence.fileName,
+    size: formatFileSize(Number(evidence.fileSize ?? 0)),
+    uploadDate: evidence.uploadedAt.toISOString().substring(0, 10),
+    uploadedBy: toUploaderName(evidence),
+  };
+}
+
+function toEvidenceFile(evidence: EvidenceRow): EvidenceFile {
+  return {
+    id: evidence.id,
+    name: evidence.fileName,
+    size: formatFileSize(Number(evidence.fileSize ?? 0)),
+    uploadedBy: toUploaderName(evidence),
+  };
+}
+
 function toDefect(record: DefectRecord): Defect {
+  // "Final ZIP" has no category of its own (evidence_category_check only allows qc/supporting/
+  // resolution); it's a "supporting" row stored under the /final/ Storage folder, so that's what
+  // tells it apart from any other supporting evidence — see services/evidence.ts.
+  const qcEvidence = record.evidence.find((item) => item.category === 'qc');
+  const finalZipEvidence = record.evidence.find((item) => item.category === 'supporting' && item.filePath.includes('/final/'));
+  const resolutionEvidenceFiles = record.evidence.filter((item) => item.category === 'resolution').map(toEvidenceFile);
+
   return {
     // Technical PostgreSQL id. NOT displayed as the Defect ID.
     id: record.id,
@@ -67,10 +114,15 @@ function toDefect(record: DefectRecord): Defect {
       name: category.name,
     })),
 
-    // Not read from the database yet
-    qcFile: null,
-    finalZipFile: null,
-    resolution: null,
+    qcFile: qcEvidence ? toAttachedFile(qcEvidence) : null,
+    finalZipFile: finalZipEvidence ? toAttachedFile(finalZipEvidence) : null,
+    // Resolution comment/corrective action are not persisted yet (a separate, pre-existing gap —
+    // out of scope here), so a resolution object is only built when there's evidence to carry.
+    resolution:
+      resolutionEvidenceFiles.length > 0
+        ? { comment: '', correctiveAction: '', resolvedBy: '', resolutionDate: '', evidenceFiles: resolutionEvidenceFiles }
+        : null,
+
     readReceipts: record.reads.map(toReadReceipt),
 
     status: record.status,

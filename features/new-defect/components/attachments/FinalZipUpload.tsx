@@ -2,7 +2,8 @@ import { FolderArchive } from 'lucide-react';
 import { AttachedFileCard } from '@/features/new-defect/components/attachments/AttachedFileCard';
 import { UploadDropzone } from '@/features/new-defect/components/attachments/UploadDropzone';
 import { useNewDefectDraft } from '@/features/new-defect/context/NewDefectDraftProvider';
-import { createFinalZipFile } from '@/features/new-defect/lib/mockAttachments';
+import { previewFinalZipFile } from '@/features/new-defect/lib/attachmentPreview';
+import { useTeam } from '@/features/team/context/TeamProvider';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useToast } from '@/providers/ToastProvider';
 
@@ -10,11 +11,16 @@ import { useToast } from '@/providers/ToastProvider';
 export function FinalZipUpload() {
   const { darkMode, t } = useTheme();
   const { showToast } = useToast();
+  const { currentUser } = useTeam();
   const { draft, updateDraft } = useNewDefectDraft();
 
   const attach = () => {
-    if (!draft.finalZipName) return;
-    updateDraft({ finalZip: createFinalZipFile(draft.finalZipName), finalZipName: '' });
+    if (!draft.finalZipPending) return;
+    updateDraft({
+      finalZip: previewFinalZipFile(draft.finalZipPending, currentUser.name),
+      finalZipRaw: draft.finalZipPending,
+      finalZipPending: null,
+    });
     showToast('Attached Optional Final Case ZIP file.');
   };
 
@@ -43,7 +49,7 @@ export function FinalZipUpload() {
             fileName={draft.finalZip.name}
             meta={<>{draft.finalZip.size} • ZIP Archive</>}
             removeTitle="Remove ZIP"
-            onRemove={() => updateDraft({ finalZip: null })}
+            onRemove={() => updateDraft({ finalZip: null, finalZipRaw: null })}
           />
         ) : (
           <UploadDropzone
@@ -51,9 +57,10 @@ export function FinalZipUpload() {
             iconClassName="w-6 h-6 mx-auto text-neutral-400"
             title="Optional Final Case ZIP"
             subtitle="Attach complete dossier archive if available"
-            placeholder="e.g. Case_Package_Final.zip"
-            fileName={draft.finalZipName}
-            onFileNameChange={(finalZipName) => updateDraft({ finalZipName })}
+            inputId="final-zip-file"
+            accept=".zip"
+            pendingFile={draft.finalZipPending}
+            onPendingFileChange={(finalZipPending) => updateDraft({ finalZipPending })}
             onAttach={attach}
             attachButtonClassName="px-3 py-1.5 bg-neutral-800 dark:bg-neutral-700 hover:bg-neutral-900 text-white font-bold rounded text-xs cursor-pointer"
           />

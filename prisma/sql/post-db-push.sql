@@ -127,6 +127,15 @@ begin
       add constraint defect_categories_section_check
       check (section = any (array['core'::text, 'appendix'::text]));
   end if;
+
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'notifications_type_check' and conrelid = 'public.notifications'::regclass
+  ) then
+    alter table public.notifications
+      add constraint notifications_type_check
+      check (type = any (array['new_defect'::text]));
+  end if;
 end
 $$;
 
@@ -152,6 +161,7 @@ alter table public.audit_log         enable row level security;
 alter table public.qc_findings       enable row level security;
 alter table public.evidence          enable row level security;
 alter table public.defect_categories enable row level security;
+alter table public.notifications     enable row level security;
 
 -- ---------------------------------------------------------------------------
 -- 4. Time zone

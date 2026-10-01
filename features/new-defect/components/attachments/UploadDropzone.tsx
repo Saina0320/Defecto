@@ -1,4 +1,5 @@
 import { UploadCloud } from 'lucide-react';
+import { formatFileSize } from '@/lib/fileSize';
 import { useTheme } from '@/providers/ThemeProvider';
 
 type UploadDropzoneProps = {
@@ -7,22 +8,26 @@ type UploadDropzoneProps = {
   iconClassName: string;
   title: string;
   subtitle: string;
-  placeholder: string;
-  fileName: string;
-  onFileNameChange: (value: string) => void;
+  /** Unique id for the hidden file input / its label. */
+  inputId: string;
+  accept?: string;
+  /** File picked but not yet confirmed with "Attach". */
+  pendingFile: File | null;
+  onPendingFileChange: (file: File | null) => void;
   onAttach: () => void;
   attachButtonClassName: string;
 };
 
-/** Simulated upload: the user types a file name and attaches it. */
+/** Real file picker: choosing a file previews it here, "Attach" confirms it into the draft. */
 export function UploadDropzone({
   className,
   iconClassName,
   title,
   subtitle,
-  placeholder,
-  fileName,
-  onFileNameChange,
+  inputId,
+  accept,
+  pendingFile,
+  onPendingFileChange,
   onAttach,
   attachButtonClassName,
 }: UploadDropzoneProps) {
@@ -34,15 +39,26 @@ export function UploadDropzone({
       <p className={`font-semibold ${t.headingText} text-xs`}>{title}</p>
       <p className={`text-[10px] ${t.mutedText}`}>{subtitle}</p>
 
-      <div className="pt-2 flex gap-1.5">
+      <div className="pt-2 space-y-1.5">
         <input
-          type="text"
-          placeholder={placeholder}
-          value={fileName}
-          onChange={(e) => onFileNameChange(e.target.value)}
-          className={`flex-1 p-1.5 ${t.inputBg} rounded text-xs focus:outline-none`}
+          id={inputId}
+          type="file"
+          accept={accept}
+          onChange={(e) => onPendingFileChange(e.target.files?.[0] ?? null)}
+          className="hidden"
         />
-        <button type="button" onClick={onAttach} className={attachButtonClassName}>
+        <label
+          htmlFor={inputId}
+          className={`block w-full p-1.5 ${t.inputBg} rounded text-xs cursor-pointer truncate`}
+        >
+          {pendingFile ? `${pendingFile.name} (${formatFileSize(pendingFile.size)})` : 'Choose a file…'}
+        </label>
+        <button
+          type="button"
+          onClick={onAttach}
+          disabled={!pendingFile}
+          className={`${attachButtonClassName} w-full disabled:opacity-50 disabled:cursor-not-allowed`}
+        >
           Attach
         </button>
       </div>

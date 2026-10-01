@@ -25,10 +25,14 @@ export type NewDefectDraft = {
   explanation: string;
   categories: DefectCategory[];
 
-  // Step 2: attachments (the *Name fields hold the text typed before clicking "Attach")
-  qcFileName: string;
+  // Step 2: attachments. The *Pending fields hold a file picked but not yet confirmed with
+  // "Attach"; the *Raw fields hold the real, confirmed File, uploaded to Storage on submit
+  // (buildDefectRecord/submitDefect). qcFile/finalZip are the display-only preview shown meanwhile.
+  qcFilePending: File | null;
+  qcFileRaw: File | null;
   qcFile: AttachedFile | null;
-  finalZipName: string;
+  finalZipPending: File | null;
+  finalZipRaw: File | null;
   finalZip: AttachedFile | null;
 
   // Step 3: resolution
@@ -36,7 +40,8 @@ export type NewDefectDraft = {
   resolvedByChoice: PersonaScopedChoice | null;
   resolutionDate: string;
   resolutionComment: string;
-  evidenceName: string;
+  evidencePending: File | null;
+  evidenceFilesRaw: File[];
   evidenceFiles: EvidenceFile[];
 };
 
@@ -51,15 +56,18 @@ export function createInitialDraft(): NewDefectDraft {
     date: today,
     explanation: '',
     categories: [],
-    qcFileName: '',
+    qcFilePending: null,
+    qcFileRaw: null,
     qcFile: null,
-    finalZipName: '',
+    finalZipPending: null,
+    finalZipRaw: null,
     finalZip: null,
     correctiveAction: '',
     resolvedByChoice: null,
     resolutionDate: today,
     resolutionComment: '',
-    evidenceName: '',
+    evidencePending: null,
+    evidenceFilesRaw: [],
     evidenceFiles: [],
   };
 }
@@ -77,9 +85,15 @@ export const SUBMITTED_FIELDS_RESET: Partial<NewDefectDraft> = {
   kycid: '',
   explanation: '',
   categories: [],
+  qcFilePending: null,
+  qcFileRaw: null,
   qcFile: null,
+  finalZipPending: null,
+  finalZipRaw: null,
   finalZip: null,
   resolutionComment: '',
   correctiveAction: '',
+  evidencePending: null,
+  evidenceFilesRaw: [],
   evidenceFiles: [],
 };

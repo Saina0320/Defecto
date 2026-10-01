@@ -1,6 +1,7 @@
 import { FileText, X } from 'lucide-react';
 import { useNewDefectDraft } from '@/features/new-defect/context/NewDefectDraftProvider';
-import { createEvidenceFile } from '@/features/new-defect/lib/mockAttachments';
+import { previewEvidenceFile } from '@/features/new-defect/lib/attachmentPreview';
+import { useTeam } from '@/features/team/context/TeamProvider';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useToast } from '@/providers/ToastProvider';
 
@@ -8,16 +9,24 @@ import { useToast } from '@/providers/ToastProvider';
 export function EvidenceFilesField() {
   const { darkMode, t } = useTheme();
   const { showToast } = useToast();
+  const { currentUser } = useTeam();
   const { draft, updateDraft } = useNewDefectDraft();
 
   const addFile = () => {
-    if (!draft.evidenceName) return;
-    updateDraft({ evidenceFiles: [...draft.evidenceFiles, createEvidenceFile(draft.evidenceName)], evidenceName: '' });
+    if (!draft.evidencePending) return;
+    updateDraft({
+      evidenceFiles: [...draft.evidenceFiles, previewEvidenceFile(draft.evidencePending, currentUser.name)],
+      evidenceFilesRaw: [...draft.evidenceFilesRaw, draft.evidencePending],
+      evidencePending: null,
+    });
     showToast('Added resolution evidence file.');
   };
 
   const removeFile = (index: number) => {
-    updateDraft({ evidenceFiles: draft.evidenceFiles.filter((_, i) => i !== index) });
+    updateDraft({
+      evidenceFiles: draft.evidenceFiles.filter((_, i) => i !== index),
+      evidenceFilesRaw: draft.evidenceFilesRaw.filter((_, i) => i !== index),
+    });
   };
 
   return (
@@ -28,16 +37,15 @@ export function EvidenceFilesField() {
       <div className="flex gap-2 mb-2">
         <input
           id="new-defect-evidence"
-          type="text"
-          placeholder="File name (e.g. Updated_Certificate_Incumbency.pdf)"
-          value={draft.evidenceName}
-          onChange={(e) => updateDraft({ evidenceName: e.target.value })}
-          className={`flex-1 p-2 ${t.inputBg} rounded text-xs focus:outline-none`}
+          type="file"
+          onChange={(e) => updateDraft({ evidencePending: e.target.files?.[0] ?? null })}
+          className={`flex-1 p-1.5 ${t.inputBg} rounded text-xs focus:outline-none`}
         />
         <button
           type="button"
           onClick={addFile}
-          className={`px-3 py-2 ${darkMode ? 'bg-neutral-800 text-neutral-200' : 'bg-neutral-200 text-neutral-800'} hover:opacity-90 font-semibold rounded text-xs cursor-pointer`}
+          disabled={!draft.evidencePending}
+          className={`px-3 py-2 ${darkMode ? 'bg-neutral-800 text-neutral-200' : 'bg-neutral-200 text-neutral-800'} hover:opacity-90 font-semibold rounded text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           + Add File
         </button>

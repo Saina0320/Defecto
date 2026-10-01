@@ -2,9 +2,11 @@
 
 import { CASE_TYPES } from '@/constants/categories';
 import { isKnownCategory } from '@/features/defects/lib/categories';
+import { formatCcidDisplay } from '@/features/defects/lib/identifiers';
 import { getCurrentUser } from '@/lib/auth/session';
 import { createDefect } from '@/services/defects';
-import { findProfileIdByFullName } from '@/services/profiles';
+import { createNotifications } from '@/services/notifications';
+import { findProfileIdByFullName, getSupervisorRecipientIds } from '@/services/profiles';
 import type { CaseType, DefectCategory } from '@/types/defect';
 
 export type SubmitDefectInput = {
@@ -67,6 +69,27 @@ export async function submitDefect(input: SubmitDefectInput): Promise<SubmitDefe
       explanation: values.explanation,
       categories: values.categories,
     });
+
+    // The defect exists now, so notifying is safe. Its own failure must never turn this into an
+    // error response — the defect was already saved successfully at this point. The actor is the
+    // signed-in session user, not values.analystName (which the browser sends and this wizard
+    // lets a Manager override to someone else's name), so the notification always credits — and
+    // excludes from recipients — whoever actually submitted the request.
+    try {
+      const recipientIds = await getSupervisorRecipientIds(user.id);
+      if (recipientIds.length > 0) {
+        await createNotifications(
+          recipientIds.map((recipientId) => ({
+            recipientId,
+            defectId: created.id,
+            title: 'New defect registered',
+            message: `${user.name} added a new defect.\nCCID: ${formatCcidDisplay(values.ccid)}\nKYCID: ${values.kycid}`,
+          }))
+        );
+      }
+    } catch (error) {
+      console.error('Error creating new-defect notifications:', error);
+    }
 
     return { ok: true, id: created.id, status: created.status };
   } catch (error) {

@@ -115,3 +115,13 @@ export async function setProfileActive(profileId: string, active: boolean): Prom
 
   return toTeamMember(profile);
 }
+
+/** Active Manager/Admin profile ids, excluding the given one — the "new defect" notification audience. */
+export async function getSupervisorRecipientIds(excludeProfileId: string): Promise<string[]> {
+  const profiles = await getPrisma().profile.findMany({
+    where: { active: true, role: { in: ['manager', 'admin'] }, id: { not: excludeProfileId } },
+    select: { id: true },
+  });
+
+  return profiles.map((profile) => profile.id);
+}

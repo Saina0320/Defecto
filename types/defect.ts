@@ -15,12 +15,16 @@ export type AttachedFile = {
   name: string;
   size: string;
   uploadDate: string;
+  /** Full name of the profile that uploaded it, resolved server-side from Evidence.uploadedById. */
+  uploadedBy: string;
 };
 
 export type EvidenceFile = {
   id: string;
   name: string;
   size: string;
+  /** Full name of the profile that uploaded it, resolved server-side from Evidence.uploadedById. */
+  uploadedBy: string;
 };
 
 export type DefectResolution = {
