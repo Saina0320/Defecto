@@ -18,7 +18,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Everything except the build assets and the /public/brand images, both of which the
-  // login page itself needs to render while signed out.
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|brand/).*)'],
+  // Everything except the build assets, the /public/brand images and the app icons — all of
+  // which must load on the login page itself, while signed out.
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png|brand/).*)'],
 };
