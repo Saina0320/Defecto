@@ -39,10 +39,20 @@ function getSupabaseStorage(): SupabaseClient {
 
 /** Uploads a file's bytes to the private bucket at this exact path. Fails if the path already exists. */
 export async function uploadEvidenceFile(path: string, bytes: Buffer, contentType: string | null): Promise<void> {
-  const { error } = await getSupabaseStorage()
+  const { data, error } = await getSupabaseStorage()
     .storage.from(EVIDENCE_BUCKET)
     .upload(path, bytes, { contentType: contentType ?? undefined, upsert: false });
 
+  // Supabase-js can resolve with neither `error` nor `data` on some transport failures; treat
+  // that the same as an explicit error instead of silently reporting success.
+  if (error || !data) {
+    throw error ?? new Error(`Supabase Storage upload to "${EVIDENCE_BUCKET}/${path}" returned no data and no error.`);
+  }
+}
+
+/** Removes a file from the private bucket — used to roll back an upload whose DB write then failed. */
+export async function deleteEvidenceFile(path: string): Promise<void> {
+  const { error } = await getSupabaseStorage().storage.from(EVIDENCE_BUCKET).remove([path]);
   if (error) throw error;
 }
 

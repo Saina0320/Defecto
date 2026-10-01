@@ -2,7 +2,7 @@
 
 import { requireUser } from '@/lib/auth/session';
 import { isSupervisorRole } from '@/lib/permissions';
-import { createEvidenceDownloadUrl, uploadEvidenceFile } from '@/lib/supabaseStorage';
+import { createEvidenceDownloadUrl, deleteEvidenceFile, uploadEvidenceFile } from '@/lib/supabaseStorage';
 import { getDefectAnalystId } from '@/services/defects';
 import { buildEvidencePath, createEvidenceRecord, getEvidencePath, type EvidenceCategory, type EvidenceFolder } from '@/services/evidence';
 
@@ -12,6 +12,7 @@ export type UploadedEvidence = {
   fileSize: number;
   fileType: string | null;
   uploadedAt: string;
+  uploadedBy: string;
 };
 
 export type UploadEvidenceResult =
@@ -21,20 +22,26 @@ export type UploadEvidenceResult =
 async function uploadOneEvidenceFile(
   defectId: string,
   uploadedById: string,
+  uploadedByName: string,
   file: File,
   category: EvidenceCategory,
   folder: EvidenceFolder
 ): Promise<UploadEvidenceResult> {
   const path = buildEvidencePath(defectId, folder, file.name);
+  const logContext = { defectId, category, folder, path, fileName: file.name, fileSize: file.size };
 
+  // Step 1: the actual bytes, really uploaded to the private bucket. Nothing is reported to the
+  // caller as persisted until this (and the DB write below) both confirm.
   try {
     const bytes = Buffer.from(await file.arrayBuffer());
     await uploadEvidenceFile(path, bytes, file.type || null);
   } catch (error) {
-    console.error('Error uploading evidence file to Storage:', error);
+    console.error('Error uploading evidence file to Supabase Storage:', { ...logContext, error });
     return { ok: false, reason: 'storage-error' };
   }
 
+  // Step 2: the metadata row. If this fails, the bytes already written in step 1 would be an
+  // orphan — a real file nothing in the database points to — so they're rolled back here.
   try {
     const record = await createEvidenceRecord({
       defectId,
@@ -53,13 +60,18 @@ async function uploadOneEvidenceFile(
         fileSize: record.fileSize,
         fileType: record.fileType,
         uploadedAt: record.uploadedAt.toISOString(),
+        uploadedBy: uploadedByName,
       },
     };
   } catch (error) {
-    // The uploaded bytes stay in Storage even if the metadata write fails; they're simply
-    // unreferenced until someone re-attaches the same file, which uploads them again under a
-    // fresh unique path. Not cleaning them up here keeps this action's error handling simple.
-    console.error('Error saving evidence metadata:', error);
+    console.error('Error saving evidence metadata; rolling back the Storage upload:', { ...logContext, error });
+    try {
+      await deleteEvidenceFile(path);
+    } catch (rollbackError) {
+      // Now there IS an orphaned file with no database row. Logged loudly so it can be found and
+      // removed by hand — silently losing track of it would contradict "no archivo huérfano".
+      console.error('Rollback failed: this Storage file has no matching Evidence row:', { ...logContext, rollbackError });
+    }
     return { ok: false, reason: 'database-error' };
   }
 }
@@ -92,14 +104,16 @@ export async function uploadDefectEvidence(defectId: string, formData: FormData)
   const evidenceFiles = formData.getAll('evidence').filter((entry): entry is File => entry instanceof File && entry.size > 0);
 
   const [qcResult, finalZipResult] = await Promise.all([
-    qcFile instanceof File && qcFile.size > 0 ? uploadOneEvidenceFile(defectId, user.id, qcFile, 'qc', 'qc') : Promise.resolve(null),
+    qcFile instanceof File && qcFile.size > 0
+      ? uploadOneEvidenceFile(defectId, user.id, user.name, qcFile, 'qc', 'qc')
+      : Promise.resolve(null),
     finalZip instanceof File && finalZip.size > 0
-      ? uploadOneEvidenceFile(defectId, user.id, finalZip, 'supporting', 'final')
+      ? uploadOneEvidenceFile(defectId, user.id, user.name, finalZip, 'supporting', 'final')
       : Promise.resolve(null),
   ]);
 
   const resolutionEvidence = await Promise.all(
-    evidenceFiles.map((file) => uploadOneEvidenceFile(defectId, user.id, file, 'resolution', 'resolution'))
+    evidenceFiles.map((file) => uploadOneEvidenceFile(defectId, user.id, user.name, file, 'resolution', 'resolution'))
   );
 
   return { qcFile: qcResult, finalZip: finalZipResult, resolutionEvidence };
