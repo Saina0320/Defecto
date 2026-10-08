@@ -1,5 +1,6 @@
 export const ROUTES = {
   overview: '/',
+  analytics: '/analytics',
   defects: '/defects',
   newDefect: '/defects/new',
   evidence: '/evidence',
@@ -11,6 +12,7 @@ export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES];
 // Rendered with CSS `capitalize` in the top header.
 const HEADER_TITLES: Record<AppRoute, string> = {
   [ROUTES.overview]: 'overview',
+  [ROUTES.analytics]: 'analytics',
   [ROUTES.defects]: 'defects',
   [ROUTES.newDefect]: 'New Defect Workflow',
   [ROUTES.evidence]: 'evidence',

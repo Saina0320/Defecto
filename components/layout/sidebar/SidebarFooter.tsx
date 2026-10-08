@@ -11,7 +11,7 @@ export function SidebarFooter() {
   return (
     <div className={`p-3 border-t ${t.sidebarHeader}`}>
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-[#003EA4] border border-blue-300 flex items-center justify-center font-bold text-xs text-white shadow-xs">
+        <div className="w-8 h-8 rounded-full bg-[#0757C9] border border-[#4A9BFF]/60 flex items-center justify-center font-bold text-xs text-white shadow-xs">
           {currentUser.initials}
         </div>
         <div className="flex-1 min-w-0">

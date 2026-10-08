@@ -22,7 +22,7 @@ export function AnalystActivityChart({ data }: { data: AnalystActivity[] }) {
               borderRadius: '4px',
             }}
           />
-          <Bar dataKey="defectsLogged" name="Defects Handled" fill="#003EA4" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="defectsLogged" name="Defects Handled" fill="#0757C9" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

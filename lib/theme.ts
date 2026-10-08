@@ -1,36 +1,47 @@
-import type { CaseType, CategorySection } from '@/types/defect';
+import type { CaseType, CategorySection, DefectReasonCode } from '@/types/defect';
 import type { EvidenceTag } from '@/types/evidence';
 import type { UserRole } from '@/types/team';
 
-/** Tailwind class tokens for the app-controlled light/dark theme. */
+/**
+ * Tailwind class tokens for the app-controlled light/dark theme.
+ *
+ * Palette reference (design system, not reproduced elsewhere — read values from here):
+ *   Light: bg #F4F7FB · surface #FFFFFF · surface-2 #F8FAFD · navy #063B82 · blue #0757C9
+ *          accent #2F80ED · text #102A43 · text-2 #5B6B7A · muted #7B8794
+ *          border #D9E2EC · border-soft #E8EEF5
+ *   Dark:  bg #08111F · surface #0E1A2B · surface-2 #122238 · navy #0A3E83 · blue #2F80ED
+ *          text #E8F0FA · text-2 #AFC0D4 · muted #7D91A8 · border #20344D
+ * Semantic (both modes, via Tailwind's own palette — close enough to spec to reuse directly):
+ *   success emerald · warning amber · danger red · purple purple.
+ */
 export function getThemeClasses(darkMode: boolean) {
   return {
-    appBg: darkMode ? 'bg-[#0B132B] text-[#F1F5F9]' : 'bg-[#EEF1F5] text-[#1A2433]',
+    appBg: darkMode ? 'bg-[#08111F] text-[#E8F0FA]' : 'bg-[#F4F7FB] text-[#102A43]',
     sidebarBg: darkMode
-      ? 'bg-[#0A192F] border-r border-[#1E293B] shadow-[6px_0_30px_rgba(0,0,0,0.5)]'
-      : 'bg-[#002D72] border-r border-[#001E4D]/80 shadow-[4px_0_24px_-2px_rgba(0,45,114,0.35)]',
-    sidebarHeader: darkMode ? 'bg-[#071324] border-white/10' : 'bg-[#00245E] border-white/10',
-    headerBg: darkMode ? 'bg-[#111E38] border-[#1E2E4A]' : 'bg-[#E6EBF0] border-[#D8E0E8]',
-    headerText: darkMode ? 'text-white' : 'text-[#1A2433]',
+      ? 'bg-[#081B33] border-r border-[#13253D] shadow-[6px_0_30px_rgba(0,0,0,0.45)]'
+      : 'bg-[#063B82] border-r border-[#042a5e] shadow-[4px_0_24px_-2px_rgba(6,59,130,0.35)]',
+    sidebarHeader: darkMode ? 'bg-[#051226] border-white/10' : 'bg-[#052f68] border-white/10',
+    headerBg: darkMode ? 'bg-[#0E1A2B] border-[#20344D]' : 'bg-white border-[#D9E2EC]',
+    headerText: darkMode ? 'text-[#E8F0FA]' : 'text-[#102A43]',
     cardBg: darkMode
-      ? 'bg-[#111E38] border-[#1E2E4A] shadow-md'
-      : 'bg-white border-[#DCE3EA] shadow-[0_1px_3px_rgba(15,23,42,0.06),0_1px_2px_rgba(15,23,42,0.04)]',
-    tableHeaderBg: darkMode ? 'bg-[#0F1A30] border-[#1E2E4A]' : 'bg-[#F0F3F6] border-[#DCE3EA]',
-    tableRowHover: darkMode ? 'hover:bg-[#162746]/60' : 'hover:bg-blue-50/40',
-    tableBorder: darkMode ? 'divide-[#1E2E4A] border-[#1E2E4A]' : 'divide-[#E7ECF1] border-[#DCE3EA]',
-    innerBoxBg: darkMode ? 'bg-[#0B1426] border-[#1E2E4A]' : 'bg-[#F3F5F8] border-[#DCE3EA]',
+      ? 'bg-[#0E1A2B] border-[#20344D] shadow-md'
+      : 'bg-white border-[#D9E2EC] shadow-[0_1px_3px_rgba(16,42,67,0.06),0_1px_2px_rgba(16,42,67,0.04)]',
+    tableHeaderBg: darkMode ? 'bg-[#122238] border-[#20344D]' : 'bg-[#F8FAFD] border-[#D9E2EC]',
+    tableRowHover: darkMode ? 'hover:bg-[#15263d]/70' : 'hover:bg-[#EDF4FD]',
+    tableBorder: darkMode ? 'divide-[#1A2C44] border-[#20344D]' : 'divide-[#E8EEF5] border-[#D9E2EC]',
+    innerBoxBg: darkMode ? 'bg-[#122238] border-[#20344D]' : 'bg-[#F8FAFD] border-[#D9E2EC]',
     inputBg: darkMode
-      ? 'bg-[#0B1426] border-[#2A3F66] text-white placeholder:text-neutral-500'
-      : 'bg-[#F3F5F8] border-[#D8E0E8] text-[#1A2433]',
-    mutedText: darkMode ? 'text-[#94A3B8]' : 'text-[#5B6B80]',
-    headingText: darkMode ? 'text-white' : 'text-[#1A2433]',
-    cyanTagText: darkMode ? 'text-[#38BDF8]' : 'text-[#0056B3]',
+      ? 'bg-[#0E1A2B] border-[#20344D] text-[#E8F0FA] placeholder:text-[#7D91A8]'
+      : 'bg-[#F8FAFD] border-[#D9E2EC] text-[#102A43] placeholder:text-[#7B8794]',
+    mutedText: darkMode ? 'text-[#AFC0D4]' : 'text-[#5B6B7A]',
+    headingText: darkMode ? 'text-[#E8F0FA]' : 'text-[#102A43]',
+    cyanTagText: darkMode ? 'text-[#4A9BFF]' : 'text-[#0757C9]',
     /** Border color for section separators inside cards and forms. */
-    dividerSoft: darkMode ? 'border-[#1E2E4A]' : 'border-[#E7ECF1]',
+    dividerSoft: darkMode ? 'border-[#1A2C44]' : 'border-[#E8EEF5]',
     /** Border color for modal frames and footer separators. */
-    divider: darkMode ? 'border-[#1E2E4A]' : 'border-[#DCE3EA]',
+    divider: darkMode ? 'border-[#20344D]' : 'border-[#D9E2EC]',
     /** Border color for separators inside upload panels and evidence lists. */
-    dividerNeutral: darkMode ? 'border-neutral-700' : 'border-[#DCE3EA]',
+    dividerNeutral: darkMode ? 'border-[#20344D]' : 'border-[#D9E2EC]',
   };
 }
 
@@ -83,6 +94,37 @@ export function getDocTypeBadgeClass(docType: EvidenceTag, darkMode: boolean): s
   return darkMode
     ? 'bg-blue-950/40 text-blue-300 border border-blue-800/60 font-medium'
     : 'bg-blue-100 text-[#002D72] border border-blue-300 font-semibold shadow-2xs';
+}
+
+/** Not-classified (null — historical defects, or not yet selected) gets a neutral, non-alarming tone. */
+export function getDefectReasonBadgeClass(code: DefectReasonCode | null, darkMode: boolean): string {
+  if (!code) {
+    return darkMode
+      ? 'bg-neutral-800/60 text-neutral-400 border border-neutral-700 font-normal italic'
+      : 'bg-neutral-100 text-neutral-500 border border-neutral-300 font-medium italic';
+  }
+  switch (code) {
+    case 'PROCEDURAL_ERROR':
+      return darkMode
+        ? 'bg-red-950/40 text-red-300 border border-red-800/60 font-medium'
+        : 'bg-red-100 text-red-900 border border-red-300 font-semibold shadow-2xs';
+    case 'KNOWLEDGE_TRAINING_GAP':
+      return darkMode
+        ? 'bg-amber-950/40 text-amber-300 border border-amber-800/60 font-medium'
+        : 'bg-amber-100 text-amber-900 border border-amber-300 font-semibold shadow-2xs';
+    case 'SYSTEM_MAPPING_ISSUE':
+      return darkMode
+        ? 'bg-purple-950/40 text-purple-300 border border-purple-800/60 font-medium'
+        : 'bg-purple-100 text-purple-900 border border-purple-300 font-semibold shadow-2xs';
+    case 'PROCESS_PROCEDURE_ISSUE':
+      return darkMode
+        ? 'bg-blue-950/40 text-blue-300 border border-blue-800/60 font-medium'
+        : 'bg-blue-100 text-[#002D72] border border-blue-300 font-semibold shadow-2xs';
+    case 'OTHER_EXTERNAL_FACTOR':
+      return darkMode
+        ? 'bg-slate-800/50 text-slate-300 border border-slate-700 font-normal'
+        : 'bg-slate-100 text-slate-700 border border-slate-300 font-medium shadow-2xs';
+  }
 }
 
 export function getRoleBadgeClass(role: UserRole, darkMode: boolean): string {

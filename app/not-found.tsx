@@ -13,7 +13,7 @@ export default function NotFound() {
         <p className="text-xs text-neutral-500">This page does not exist in KYC Defect Hub.</p>
         <Link
           href={ROUTES.overview}
-          className="inline-block px-3.5 py-2 bg-[#003EA4] hover:bg-[#002D72] text-white text-xs font-bold rounded shadow transition"
+          className="inline-block px-3.5 py-2 bg-[#0757C9] hover:bg-[#063B82] text-white text-xs font-bold rounded shadow transition"
         >
           Back to Overview
         </Link>

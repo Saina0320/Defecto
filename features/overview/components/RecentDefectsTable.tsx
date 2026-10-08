@@ -15,6 +15,7 @@ const RECENT_COLUMNS: readonly DataTableColumn[] = [
   { label: 'Case Type' },
   { label: 'Analyst' },
   { label: 'Core / Appendix Areas' },
+  { label: 'Reason' },
   { label: 'QC Findings' },
   { label: 'Final ZIP' },
   { label: 'Read Status' },
@@ -25,10 +26,10 @@ export function RecentDefectsTable({ defects }: { defects: Defect[] }) {
   const { t } = useTheme();
 
   return (
-    <div className={`${t.cardBg} rounded-lg border overflow-hidden`}>
+    <div className={`${t.cardBg} rounded-[14px] border overflow-hidden`}>
       <div className={`p-4 ${t.tableHeaderBg} border-b flex items-center justify-between`}>
         <div className="flex items-center gap-2">
-          <ShieldAlert className="w-4 h-4 text-[#003EA4] dark:text-blue-400" />
+          <ShieldAlert className="w-4 h-4 text-[#0757C9] dark:text-blue-400" />
           <h4 className={`font-bold text-xs uppercase tracking-wider ${t.headingText}`}>Recent Completed KYC Defects</h4>
         </div>
         <Link
@@ -51,7 +52,7 @@ export function RecentDefectsTable({ defects }: { defects: Defect[] }) {
                   <p className="font-semibold text-xs">No defects found in registry.</p>
                   <Link
                     href={ROUTES.newDefect}
-                    className="inline-block text-center mt-2 px-3.5 py-1.5 bg-[#003EA4] hover:bg-[#002D72] text-white text-[11px] rounded font-semibold cursor-pointer shadow-xs"
+                    className="inline-block text-center mt-2 px-3.5 py-1.5 bg-[#0757C9] hover:bg-[#063B82] text-white text-[11px] rounded font-semibold cursor-pointer shadow-xs"
                   >
                     Log First Defect
                   </Link>

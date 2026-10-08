@@ -61,6 +61,9 @@ export function useSubmitNewDefect() {
         analystName,
         explanation: draft.explanation,
         categories: draft.categories,
+        // getSubmissionIssue already rejected this call above if defectReason is still null.
+        defectReason: draft.defectReason!,
+        defectReasonDetails: draft.defectReasonDetails,
       });
     } catch (error) {
       // The request itself failed (network or server unavailable).

@@ -1,6 +1,7 @@
 import type { MouseEvent } from 'react';
 import { CaseTypeBadge } from '@/features/defects/components/CaseTypeBadge';
 import { CategoryBadge } from '@/features/defects/components/CategoryBadge';
+import { DefectReasonBadge } from '@/features/defects/components/DefectReasonBadge';
 import { AttachmentBadge } from '@/features/defects/components/table/AttachmentBadge';
 import { CopyableValue } from '@/features/defects/components/table/CopyableValue';
 import { DefectRowActions } from '@/features/defects/components/table/DefectRowActions';
@@ -37,7 +38,7 @@ export function DefectTableRow({ defect, variant }: DefectTableRowProps) {
           display={formatCcidDisplay(defect.ccid)}
           label="CCID"
           copyTitle="Copy 16-digit CCID"
-          className="flex items-center gap-1 font-mono font-bold text-[#003EA4] dark:text-blue-400 text-xs"
+          className="flex items-center gap-1 font-mono font-bold text-[#0757C9] dark:text-blue-400 text-xs"
         />
       </td>
       <td className="p-3">
@@ -54,7 +55,7 @@ export function DefectTableRow({ defect, variant }: DefectTableRowProps) {
       <td className={`p-3 ${t.headingText} font-medium`}>
         <span>{defect.analystName}</span>
         {isOwner && (
-          <span className={`ml-1 text-[9px] px-1.5 py-0.2 rounded font-bold ${darkMode ? 'bg-blue-900/60 text-blue-300' : 'bg-blue-100 text-[#002D72]'}`}>
+          <span className={`ml-1 text-[9px] px-1.5 py-0.2 rounded font-bold ${darkMode ? 'bg-blue-900/60 text-blue-300' : 'bg-blue-100 text-[#063B82]'}`}>
             YOU
           </span>
         )}
@@ -70,6 +71,9 @@ export function DefectTableRow({ defect, variant }: DefectTableRowProps) {
             />
           ))}
         </div>
+      </td>
+      <td className="p-3">
+        <DefectReasonBadge code={defect.defectReason} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] whitespace-nowrap" />
       </td>
       <td className="p-3">
         <AttachmentBadge kind="qc" fileName={defect.qcFile?.name} />

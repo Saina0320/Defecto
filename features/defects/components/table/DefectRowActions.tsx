@@ -15,10 +15,10 @@ export function DefectRowActions({ defect }: { defect: Defect }) {
       {canManage && (
         <button
           onClick={() => openEdit(defect)}
-          className="p-1 text-neutral-500 hover:text-[#003EA4] dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded cursor-pointer"
+          className="p-1 text-neutral-500 hover:text-[#0757C9] dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded cursor-pointer"
           title="Edit Defect Record"
         >
-          <Edit3 className="w-3.5 h-3.5 text-[#003EA4] dark:text-blue-400" />
+          <Edit3 className="w-3.5 h-3.5 text-[#0757C9] dark:text-blue-400" />
         </button>
       )}
       {canManage && (
@@ -32,7 +32,7 @@ export function DefectRowActions({ defect }: { defect: Defect }) {
       )}
       <button
         onClick={() => openDetails(defect)}
-        className="px-2 py-1 bg-[#003EA4] hover:bg-[#002D72] text-white text-[11px] font-semibold rounded shadow-2xs ml-1 cursor-pointer"
+        className="px-2 py-1 bg-[#0757C9] hover:bg-[#063B82] text-white text-[11px] font-semibold rounded shadow-2xs ml-1 cursor-pointer"
       >
         Open
       </button>

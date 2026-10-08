@@ -14,7 +14,7 @@ export function CaseIdentifierFields() {
       </h4>
 
       <div
-        className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${darkMode ? 'bg-[#0B1426]/70 border-[#1E2E4A]' : 'bg-blue-50/40 border-blue-100'} p-4 rounded-lg border`}
+        className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${darkMode ? 'bg-[#0B1426]/70 border-[#1E2E4A]' : 'bg-blue-50/40 border-blue-100'} p-4 rounded-[14px] border`}
       >
         <div>
           <div className="flex items-center justify-between mb-1">
@@ -31,7 +31,7 @@ export function CaseIdentifierFields() {
             placeholder="e.g. 1234567890123456"
             value={draft.ccid}
             onChange={(e) => updateDraft({ ccid: sanitizeCcid(e.target.value) })}
-            className={`w-full p-2.5 ${t.inputBg} rounded focus:border-[#003EA4] focus:outline-none font-mono font-bold text-xs tracking-wider`}
+            className={`w-full p-2.5 ${t.inputBg} rounded focus:border-[#0757C9] focus:outline-none font-mono font-bold text-xs tracking-wider`}
           />
           <p className={`text-[10px] ${t.mutedText} mt-1`}>Stored exactly as entered (numeric only). No prefix added.</p>
         </div>
@@ -50,7 +50,7 @@ export function CaseIdentifierFields() {
             placeholder="e.g. KYC-123456789012"
             value={draft.kycid}
             onChange={(e) => updateDraft({ kycid: normalizeKycidInput(e.target.value) })}
-            className={`w-full p-2.5 ${t.inputBg} rounded focus:border-[#003EA4] focus:outline-none font-mono font-bold text-xs`}
+            className={`w-full p-2.5 ${t.inputBg} rounded focus:border-[#0757C9] focus:outline-none font-mono font-bold text-xs`}
           />
           <p className={`text-[10px] ${t.mutedText} mt-1`}>Preserved exactly as provided in KIWI (includes KYC-).</p>
         </div>

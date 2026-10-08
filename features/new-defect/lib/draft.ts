@@ -1,5 +1,5 @@
 import { todayIsoDate } from '@/lib/dates';
-import type { AttachedFile, CaseType, DefectCategory, EvidenceFile } from '@/types/defect';
+import type { AttachedFile, CaseType, DefectCategory, DefectReasonCode, EvidenceFile } from '@/types/defect';
 import type { TeamMember } from '@/types/team';
 
 export type WizardStep = 1 | 2 | 3;
@@ -24,6 +24,8 @@ export type NewDefectDraft = {
   date: string;
   explanation: string;
   categories: DefectCategory[];
+  defectReason: DefectReasonCode | null;
+  defectReasonDetails: string;
 
   // Step 2: attachments. The *Pending fields hold a file picked but not yet confirmed with
   // "Attach"; the *Raw fields hold the real, confirmed File, uploaded to Storage on submit
@@ -56,6 +58,8 @@ export function createInitialDraft(): NewDefectDraft {
     date: today,
     explanation: '',
     categories: [],
+    defectReason: null,
+    defectReasonDetails: '',
     qcFilePending: null,
     qcFileRaw: null,
     qcFile: null,
@@ -85,6 +89,8 @@ export const SUBMITTED_FIELDS_RESET: Partial<NewDefectDraft> = {
   kycid: '',
   explanation: '',
   categories: [],
+  defectReason: null,
+  defectReasonDetails: '',
   qcFilePending: null,
   qcFileRaw: null,
   qcFile: null,

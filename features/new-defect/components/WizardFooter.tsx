@@ -35,7 +35,7 @@ export function WizardProceedButton({ label, onClick }: { label: string; onClick
     <button
       type="button"
       onClick={onClick}
-      className="px-5 py-2.5 bg-[#003EA4] hover:bg-[#002D72] text-white font-bold rounded flex items-center gap-2 shadow transition cursor-pointer"
+      className="px-5 py-2.5 bg-[#0757C9] hover:bg-[#063B82] text-white font-bold rounded flex items-center gap-2 shadow transition cursor-pointer"
     >
       <span>{label}</span>
       <ArrowRight className="w-4 h-4" />

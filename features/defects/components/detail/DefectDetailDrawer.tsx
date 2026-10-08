@@ -1,10 +1,12 @@
 import { Edit3, FileText, FolderArchive, Trash2, X } from 'lucide-react';
+import { getDefectReasonDefinition } from '@/constants/defectReasons';
 import { CaseTypeBadge } from '@/features/defects/components/CaseTypeBadge';
 import { CategoryBadge } from '@/features/defects/components/CategoryBadge';
 import { DrawerFileCard } from '@/features/defects/components/detail/DrawerFileCard';
 import { DrawerSection } from '@/features/defects/components/detail/DrawerSection';
 import { ReadAcknowledgmentSection } from '@/features/defects/components/detail/ReadAcknowledgmentSection';
 import { useDefectDialogs } from '@/features/defects/context/DefectDialogsProvider';
+import { DEFECT_REASON_ICONS } from '@/features/defects/lib/defectReasonIcons';
 import { formatCcidDisplay } from '@/features/defects/lib/identifiers';
 import { useTeam } from '@/features/team/context/TeamProvider';
 import { canManageDefect } from '@/lib/permissions';
@@ -16,6 +18,8 @@ export function DefectDetailDrawer({ defect }: { defect: Defect }) {
   const { currentUser } = useTeam();
   const { closeDetails, openEdit, requestDelete } = useDefectDialogs();
   const { resolution } = defect;
+  const reasonDefinition = getDefectReasonDefinition(defect.defectReason);
+  const ReasonIcon = defect.defectReason ? DEFECT_REASON_ICONS[defect.defectReason] : null;
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-xs transition-opacity">
@@ -23,7 +27,7 @@ export function DefectDetailDrawer({ defect }: { defect: Defect }) {
         className={`w-full max-w-xl ${t.cardBg} h-full shadow-2xl flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-200 border-l ${t.divider}`}
       >
         <div>
-          <div className="p-5 bg-[#002D72] text-white flex items-center justify-between">
+          <div className="p-5 bg-[#063B82] text-white flex items-center justify-between">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="font-mono text-xs bg-white/20 px-2 py-0.5 rounded font-bold">CCID: {formatCcidDisplay(defect.ccid)}</span>
@@ -121,7 +125,29 @@ export function DefectDetailDrawer({ defect }: { defect: Defect }) {
               )}
             </DrawerSection>
 
-            <DrawerSection title="4. Read & Acknowledgment Status">
+            <DrawerSection title="4. Reason for Defect">
+              {reasonDefinition && ReasonIcon ? (
+                <div className={`p-3 rounded border space-y-1.5 ${darkMode ? 'bg-[#0B1426] border-[#1E2E4A]' : 'bg-blue-50/40 border-blue-100'}`}>
+                  <div className="flex items-center gap-2">
+                    <span className={`p-1.5 rounded ${darkMode ? 'bg-[#1E2E4A]' : 'bg-blue-100'}`}>
+                      <ReasonIcon className="w-4 h-4 text-[#0757C9] dark:text-blue-400" />
+                    </span>
+                    <span className={`font-bold text-xs ${t.headingText}`}>{reasonDefinition.label}</span>
+                  </div>
+                  <p className={`text-xs ${t.mutedText} leading-relaxed`}>{reasonDefinition.description}</p>
+                  {defect.defectReasonDetails && (
+                    <p className={`text-xs ${t.headingText} pt-1.5 border-t ${darkMode ? 'border-[#1E2E4A]' : 'border-blue-100'}`}>
+                      <span className={`font-semibold ${t.mutedText}`}>Details: </span>
+                      {defect.defectReasonDetails}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className={`text-[11px] ${t.mutedText} italic`}>Not classified.</p>
+              )}
+            </DrawerSection>
+
+            <DrawerSection title="5. Read & Acknowledgment Status">
               <ReadAcknowledgmentSection defect={defect} />
             </DrawerSection>
           </div>
@@ -133,7 +159,7 @@ export function DefectDetailDrawer({ defect }: { defect: Defect }) {
               <>
                 <button
                   onClick={() => openEdit(defect)}
-                  className="px-3 py-1.5 bg-[#003EA4] hover:bg-[#002D72] text-white text-xs font-semibold rounded flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  className="px-3 py-1.5 bg-[#0757C9] hover:bg-[#063B82] text-white text-xs font-semibold rounded flex items-center gap-1.5 cursor-pointer shadow-xs"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
                   <span>Edit Defect</span>

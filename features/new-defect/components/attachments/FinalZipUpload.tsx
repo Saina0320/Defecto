@@ -25,7 +25,7 @@ export function FinalZipUpload() {
   };
 
   return (
-    <div className={`${t.innerBoxBg} p-4 rounded-lg border flex flex-col justify-between`}>
+    <div className={`${t.innerBoxBg} p-4 rounded-[14px] border flex flex-col justify-between`}>
       <div>
         <div className={`flex items-center gap-2 mb-2 pb-2 border-b ${t.dividerNeutral}`}>
           <span className="p-1.5 bg-amber-100 text-amber-700 rounded">
@@ -62,6 +62,7 @@ export function FinalZipUpload() {
             pendingFile={draft.finalZipPending}
             onPendingFileChange={(finalZipPending) => updateDraft({ finalZipPending })}
             onAttach={attach}
+            onRejected={(message) => showToast(message)}
             attachButtonClassName="px-3 py-1.5 bg-neutral-800 dark:bg-neutral-700 hover:bg-neutral-900 text-white font-bold rounded text-xs cursor-pointer"
           />
         )}

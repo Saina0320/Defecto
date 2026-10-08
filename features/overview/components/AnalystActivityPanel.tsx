@@ -18,7 +18,7 @@ export function AnalystActivityPanel() {
   const acknowledgmentRate = useMemo(() => computeTeamAcknowledgmentRate(defects, teamUsers), [defects, teamUsers]);
 
   return (
-    <div className={`${t.cardBg} p-5 rounded-lg border space-y-4`}>
+    <div className={`${t.cardBg} p-5 rounded-[14px] border space-y-4`}>
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">

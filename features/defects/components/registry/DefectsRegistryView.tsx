@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { RegistryFilterPanel } from '@/features/defects/components/registry/RegistryFilterPanel';
+import { RegistryHeader } from '@/features/defects/components/registry/RegistryHeader';
 import { RegistryTable } from '@/features/defects/components/registry/RegistryTable';
 import { useDefectFilters } from '@/features/defects/context/DefectFiltersProvider';
 import { useDefects } from '@/features/defects/context/DefectsProvider';
@@ -14,6 +15,7 @@ export function DefectsRegistryView() {
 
   return (
     <div className="space-y-4">
+      <RegistryHeader />
       <RegistryFilterPanel filteredCount={filteredDefects.length} totalCount={defects.length} />
       <RegistryTable defects={filteredDefects} totalCount={defects.length} />
     </div>

@@ -2,8 +2,9 @@ import { useState, type FormEvent } from 'react';
 import { AlertTriangle, Edit3, Save, X } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { CASE_TYPES } from '@/constants/categories';
-import { setCategories, type SetCategoriesResult } from '@/features/defects/actions';
+import { setCategories, setDefectReason, type SetCategoriesResult, type SetDefectReasonResult } from '@/features/defects/actions';
 import { EditCategoryGrid } from '@/features/defects/components/edit/EditCategoryGrid';
+import { EditReasonGrid } from '@/features/defects/components/edit/EditReasonGrid';
 import { useDefectDialogs } from '@/features/defects/context/DefectDialogsProvider';
 import { toggleCategory } from '@/features/defects/lib/categories';
 import { createEditDraft, finalizeEditedDefect, type DefectEditDraft } from '@/features/defects/lib/editDefect';
@@ -18,6 +19,13 @@ const CATEGORY_SAVE_ERROR_MESSAGES: Record<string, string> = {
   'database-error': 'Could not save the categories. Try again.',
 };
 
+const REASON_SAVE_ERROR_MESSAGES: Record<string, string> = {
+  forbidden: 'Permission denied: you can only edit defects you created.',
+  'not-found': 'This defect no longer exists.',
+  'invalid-reason': 'Please select a reason for this defect.',
+  'database-error': 'Could not save the reason for defect. Try again.',
+};
+
 export function EditDefectModal({ defect }: { defect: Defect }) {
   const { darkMode, t } = useTheme();
   const { closeEdit, saveEdit } = useDefectDialogs();
@@ -29,20 +37,32 @@ export function EditDefectModal({ defect }: { defect: Defect }) {
   const updateResolution = (patch: Partial<DefectResolution>) =>
     setDraft((prev) => ({ ...prev, resolution: { ...prev.resolution, ...patch } }));
 
-  // Categories are persisted in PostgreSQL before anything else about the edit is applied
-  // locally; the rest of the form (CCID, explanation, resolution, ...) stays local-only, as it
-  // was before this fix — only category persistence was in scope.
+  // Categories and the reason for defect are persisted in PostgreSQL before anything else about
+  // the edit is applied locally; the rest of the form (CCID, explanation, resolution, ...) stays
+  // local-only, as it was before this fix — only category/reason persistence was in scope.
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!defect.id || isSaving) return;
 
+    if (!draft.defectReason) {
+      setSaveError('Please select a reason for this defect.');
+      return;
+    }
+
     setIsSaving(true);
     setSaveError(null);
-    const result: SetCategoriesResult = await setCategories(defect.id, draft.selectedCategories);
-    setIsSaving(false);
 
-    if (!result.ok) {
-      setSaveError(CATEGORY_SAVE_ERROR_MESSAGES[result.reason] ?? 'Could not save the categories. Try again.');
+    const categoriesResult: SetCategoriesResult = await setCategories(defect.id, draft.selectedCategories);
+    if (!categoriesResult.ok) {
+      setIsSaving(false);
+      setSaveError(CATEGORY_SAVE_ERROR_MESSAGES[categoriesResult.reason] ?? 'Could not save the categories. Try again.');
+      return;
+    }
+
+    const reasonResult: SetDefectReasonResult = await setDefectReason(defect.id, draft.defectReason, draft.defectReasonDetails);
+    setIsSaving(false);
+    if (!reasonResult.ok) {
+      setSaveError(REASON_SAVE_ERROR_MESSAGES[reasonResult.reason] ?? 'Could not save the reason for defect. Try again.');
       return;
     }
 
@@ -56,7 +76,7 @@ export function EditDefectModal({ defect }: { defect: Defect }) {
 
   return (
     <Modal className="max-w-2xl overflow-hidden animate-in zoom-in-95 duration-150">
-      <div className="p-4 bg-[#002D72] text-white flex items-center justify-between">
+      <div className="p-4 bg-[#063B82] text-white flex items-center justify-between">
         <div>
           <h3 className="font-bold text-sm flex items-center gap-1.5">
             <Edit3 className="w-4 h-4 text-blue-300" />
@@ -110,7 +130,7 @@ export function EditDefectModal({ defect }: { defect: Defect }) {
                 onClick={() => update({ caseType: type })}
                 className={`py-1.5 px-3 rounded font-bold text-xs border text-center transition cursor-pointer ${
                   draft.caseType === type
-                    ? 'bg-[#003EA4] text-white border-[#003EA4]'
+                    ? 'bg-[#0757C9] text-white border-[#0757C9]'
                     : darkMode
                       ? 'bg-[#0B1426] text-neutral-300 border-neutral-700'
                       : 'bg-white text-neutral-700 border-neutral-300'
@@ -141,6 +161,18 @@ export function EditDefectModal({ defect }: { defect: Defect }) {
             caseType={draft.caseType}
             selected={draft.selectedCategories}
             onToggle={(section, name) => update({ selectedCategories: toggleCategory(draft.selectedCategories, section, name) })}
+          />
+        </div>
+
+        <div>
+          <span className={labelClass}>Reason for Defect *</span>
+          <EditReasonGrid selected={draft.defectReason} onSelect={(defectReason) => update({ defectReason })} />
+          <input
+            type="text"
+            placeholder="Reason details (optional)"
+            value={draft.defectReasonDetails}
+            onChange={(e) => update({ defectReasonDetails: e.target.value })}
+            className={`w-full mt-1.5 p-2 ${t.inputBg} rounded text-xs`}
           />
         </div>
 
@@ -190,7 +222,7 @@ export function EditDefectModal({ defect }: { defect: Defect }) {
           <button
             type="submit"
             disabled={isSaving}
-            className="px-5 py-2 bg-[#003EA4] hover:bg-[#002D72] text-white font-bold rounded flex items-center gap-1.5 shadow cursor-pointer disabled:cursor-wait disabled:bg-[#003EA4]/75 disabled:hover:bg-[#003EA4]/75"
+            className="px-5 py-2 bg-[#0757C9] hover:bg-[#063B82] text-white font-bold rounded flex items-center gap-1.5 shadow cursor-pointer disabled:cursor-wait disabled:bg-[#0757C9]/75 disabled:hover:bg-[#0757C9]/75"
           >
             <Save className="w-4 h-4" />
             <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>

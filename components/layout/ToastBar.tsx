@@ -8,7 +8,7 @@ export function ToastBar() {
   if (!message) return null;
 
   return (
-    <div className="bg-[#002D72] text-white px-4 py-2 flex items-center justify-between text-xs font-medium shadow-md">
+    <div className="bg-[#063B82] text-white px-4 py-2 flex items-center justify-between text-xs font-medium shadow-md">
       <div className="flex items-center gap-2">
         <CheckCircle2 className="w-4 h-4 text-emerald-400" />
         <span>{message}</span>

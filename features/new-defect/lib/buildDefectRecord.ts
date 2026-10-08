@@ -24,6 +24,8 @@ export function buildDefectRecord({ draft, owner, analystName, resolvedBy, creat
     dateCreated: draft.date,
     explanation: draft.explanation,
     selectedCategories: draft.categories,
+    defectReason: draft.defectReason,
+    defectReasonDetails: draft.defectReasonDetails,
     qcFile: draft.qcFile,
     finalZipFile: draft.finalZip,
     resolution: {

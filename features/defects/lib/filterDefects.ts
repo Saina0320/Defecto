@@ -1,4 +1,4 @@
-import type { CaseType, Defect } from '@/types/defect';
+import type { CaseType, Defect, DefectReasonCode } from '@/types/defect';
 
 export const ALL = 'ALL';
 
@@ -9,6 +9,8 @@ export type DefectFilters = {
   analyst: string;
   /** Category name, or ALL. */
   category: string;
+  /** Reason code, or ALL. */
+  reason: DefectReasonCode | typeof ALL;
 };
 
 export const DEFAULT_DEFECT_FILTERS: DefectFilters = {
@@ -16,6 +18,7 @@ export const DEFAULT_DEFECT_FILTERS: DefectFilters = {
   caseType: ALL,
   analyst: ALL,
   category: ALL,
+  reason: ALL,
 };
 
 function matchesSearch(defect: Defect, rawQuery: string): boolean {
@@ -37,6 +40,7 @@ export function filterDefects(defects: Defect[], filters: DefectFilters): Defect
       matchesSearch(defect, filters.searchQuery) &&
       (filters.caseType === ALL || defect.caseType === filters.caseType) &&
       (filters.analyst === ALL || defect.analystName === filters.analyst) &&
-      (filters.category === ALL || defect.selectedCategories.some((category) => category.name === filters.category))
+      (filters.category === ALL || defect.selectedCategories.some((category) => category.name === filters.category)) &&
+      (filters.reason === ALL || defect.defectReason === filters.reason)
   );
 }

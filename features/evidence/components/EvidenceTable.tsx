@@ -40,7 +40,7 @@ export function EvidenceTable({ files }: { files: EvidenceItem[] }) {
   };
 
   return (
-    <div className={`${t.cardBg} rounded-lg border overflow-hidden`}>
+    <div className={`${t.cardBg} rounded-[14px] border overflow-hidden`}>
       <table className="w-full text-left text-xs">
         <DataTableHead columns={EVIDENCE_COLUMNS} />
         <tbody className={t.tableBorder}>
@@ -74,7 +74,7 @@ export function EvidenceTable({ files }: { files: EvidenceItem[] }) {
     </span>
   </td>
 
-  <td className="p-3 font-mono font-semibold text-xs text-[#003EA4] dark:text-blue-400">
+  <td className="p-3 font-mono font-semibold text-xs text-[#0757C9] dark:text-blue-400">
     {formatCcidDisplay(file.ccid)}
   </td>
 
@@ -86,7 +86,7 @@ export function EvidenceTable({ files }: { files: EvidenceItem[] }) {
     <button
       onClick={() => handleDownload(file)}
       disabled={PENDING_ID_PATTERN.test(file.id) || downloadingId === file.id}
-      className="p-1 text-neutral-500 hover:text-[#003EA4] dark:hover:text-blue-300 rounded cursor-pointer disabled:cursor-wait disabled:opacity-50"
+      className="p-1 text-neutral-500 hover:text-[#0757C9] dark:hover:text-blue-300 rounded cursor-pointer disabled:cursor-wait disabled:opacity-50"
       title={
         PENDING_ID_PATTERN.test(file.id)
           ? 'Still uploading — refresh once saved'

@@ -1,13 +1,14 @@
 'use server';
 
 import { CASE_TYPES } from '@/constants/categories';
+import { isDefectReasonCode } from '@/constants/defectReasons';
 import { isKnownCategory } from '@/features/defects/lib/categories';
 import { formatCcidDisplay } from '@/features/defects/lib/identifiers';
 import { getCurrentUser } from '@/lib/auth/session';
 import { createDefect } from '@/services/defects';
 import { createNotifications } from '@/services/notifications';
 import { findProfileIdByFullName, getSupervisorRecipientIds } from '@/services/profiles';
-import type { CaseType, DefectCategory } from '@/types/defect';
+import type { CaseType, DefectCategory, DefectReasonCode } from '@/types/defect';
 
 export type SubmitDefectInput = {
   ccid: string;
@@ -16,6 +17,8 @@ export type SubmitDefectInput = {
   analystName: string;
   explanation: string;
   categories: DefectCategory[];
+  defectReason: DefectReasonCode;
+  defectReasonDetails: string;
 };
 
 export type SubmitDefectResult =
@@ -32,10 +35,15 @@ function isNonEmptyString(value: unknown): value is string {
 // to match their TypeScript type or to have passed the wizard's validation.
 function parseInput(input: unknown): SubmitDefectInput | null {
   if (!input || typeof input !== 'object') return null;
-  const { ccid, kycid, caseType, analystName, explanation, categories } = input as Record<string, unknown>;
+  const { ccid, kycid, caseType, analystName, explanation, categories, defectReason, defectReasonDetails } = input as Record<
+    string,
+    unknown
+  >;
 
   if (typeof ccid !== 'string' || !/^\d{16}$/.test(ccid)) return null;
   if (!isNonEmptyString(kycid) || !isNonEmptyString(explanation) || !isNonEmptyString(analystName)) return null;
+  if (!isDefectReasonCode(defectReason)) return null;
+  if (defectReasonDetails !== undefined && typeof defectReasonDetails !== 'string') return null;
 
   const knownCaseType = CASE_TYPES.find((type) => type === caseType);
   if (!knownCaseType) return null;
@@ -43,7 +51,16 @@ function parseInput(input: unknown): SubmitDefectInput | null {
   const isKnownForThisCaseType = (category: unknown): category is DefectCategory => isKnownCategory(knownCaseType, category);
   if (!Array.isArray(categories) || !categories.every(isKnownForThisCaseType)) return null;
 
-  return { ccid, kycid, caseType: knownCaseType, analystName, explanation, categories };
+  return {
+    ccid,
+    kycid,
+    caseType: knownCaseType,
+    analystName,
+    explanation,
+    categories,
+    defectReason,
+    defectReasonDetails: defectReasonDetails ?? '',
+  };
 }
 
 /** Stores a defect for the named analyst. Failures are returned, not thrown, so the wizard can report them. */
@@ -68,6 +85,8 @@ export async function submitDefect(input: SubmitDefectInput): Promise<SubmitDefe
       analystId,
       explanation: values.explanation,
       categories: values.categories,
+      defectReason: values.defectReason,
+      defectReasonDetails: values.defectReasonDetails,
     });
 
     // The defect exists now, so notifying is safe. Its own failure must never turn this into an

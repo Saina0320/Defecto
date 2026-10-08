@@ -136,6 +136,23 @@ begin
       add constraint notifications_type_check
       check (type = any (array['new_defect'::text]));
   end if;
+
+  -- Null is allowed: existing defects recorded before this field existed, and new ones not yet
+  -- classified, must stay readable rather than being forced into a guessed category.
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'defects_defect_reason_check' and conrelid = 'public.defects'::regclass
+  ) then
+    alter table public.defects
+      add constraint defects_defect_reason_check
+      check (defect_reason is null or defect_reason = any (array[
+        'PROCEDURAL_ERROR'::text,
+        'KNOWLEDGE_TRAINING_GAP'::text,
+        'SYSTEM_MAPPING_ISSUE'::text,
+        'PROCESS_PROCEDURE_ISSUE'::text,
+        'OTHER_EXTERNAL_FACTOR'::text
+      ]));
+  end if;
 end
 $$;
 

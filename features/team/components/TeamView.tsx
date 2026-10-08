@@ -6,8 +6,8 @@ import { useDefects } from '@/features/defects/context/DefectsProvider';
 import { AddAnalystModal } from '@/features/team/components/AddAnalystModal';
 import { DeactivateAnalystDialog } from '@/features/team/components/DeactivateAnalystDialog';
 import { TeamMemberCard } from '@/features/team/components/TeamMemberCard';
+import { TeamMetricsRow } from '@/features/team/components/TeamMetricsRow';
 import { useTeam } from '@/features/team/context/TeamProvider';
-import { getActiveAnalysts } from '@/features/team/lib/roster';
 import { isSupervisorRole } from '@/lib/permissions';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useToast } from '@/providers/ToastProvider';
@@ -57,29 +57,25 @@ export function TeamView() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className={`${t.cardBg} p-5 rounded-lg border flex flex-col md:flex-row md:items-center justify-between gap-4`}>
+    <div className="space-y-4">
+      <div className={`${t.cardBg} p-4 rounded-[14px] border flex flex-col md:flex-row md:items-center justify-between gap-4`}>
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="bg-[#003EA4] text-white text-[10px] font-bold px-2 py-0.5 rounded">KYC Operations Team</span>
-            <span className={`text-xs ${t.mutedText}`}>1 QA Manager • {getActiveAnalysts(teamUsers).length} Active Analysts</span>
-          </div>
-          <h3 className={`text-base font-bold ${t.headingText}`}>Team Capacity & Analyst Management</h3>
-          <p className={`text-xs ${t.mutedText} mt-0.5`}>
-            View team roster and manage active members. Historical activity remains preserved when analysts are deactivated.
-          </p>
+          <h3 className={`text-base font-bold ${t.headingText}`}>Team & Roster</h3>
+          <p className={`text-xs ${t.mutedText} mt-0.5`}>Manage the KYC Quality Management team and analyst availability.</p>
         </div>
 
         {canManageRoster && (
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="px-3.5 py-1.5 bg-[#003EA4] hover:bg-[#002D72] text-white text-xs font-semibold rounded shadow-sm flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-1.5 bg-[#0757C9] hover:bg-[#063B82] text-white text-xs font-semibold rounded-[10px] shadow-sm flex items-center gap-1.5 cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
-            <span>Add New Analyst</span>
+            <span>Add Analyst</span>
           </button>
         )}
       </div>
+
+      <TeamMetricsRow teamUsers={teamUsers} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {teamUsers.map((member) => (

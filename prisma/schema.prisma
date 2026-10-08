@@ -56,19 +56,26 @@ model Session {
 }
 
 model Defect {
-  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  ccid           String
-  kycid          String
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ccid                String
+  kycid               String
   /// One of: individual, entity (defects_case_type_check).
-  caseType       String    @map("case_type")
-  analystId      String    @map("analyst_id") @db.Uuid
-  analystContext String?   @map("analyst_context")
+  caseType            String    @map("case_type")
+  analystId           String    @map("analyst_id") @db.Uuid
+  analystContext      String?   @map("analyst_context")
   /// One of: draft, submitted, under_review, resolved (defects_status_check).
-  status         String    @default("draft")
-  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  submittedAt    DateTime? @map("submitted_at") @db.Timestamptz(6)
+  status              String    @default("draft")
+  /// Primary reason/contributing factor the defect occurred — distinct from WHAT the defect was
+  /// (DefectCategory). Null for defects recorded before this field existed, or not yet classified.
+  /// One of: PROCEDURAL_ERROR, KNOWLEDGE_TRAINING_GAP, SYSTEM_MAPPING_ISSUE,
+  /// PROCESS_PROCEDURE_ISSUE, OTHER_EXTERNAL_FACTOR (defects_defect_reason_check).
+  defectReason        String?   @map("defect_reason")
+  /// Optional free-text context for defectReason, provided by the analyst/QC reviewer.
+  defectReasonDetails String?   @map("defect_reason_details")
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  submittedAt         DateTime? @map("submitted_at") @db.Timestamptz(6)
   /// The database only sets this on insert; @updatedAt makes Prisma Client refresh it on update.
-  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedAt           DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   analyst    Profile          @relation(fields: [analystId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   resolution Resolution?
@@ -83,6 +90,7 @@ model Defect {
   @@index([kycid], map: "idx_defects_kycid")
   @@index([analystId], map: "idx_defects_analyst")
   @@index([status], map: "idx_defects_status")
+  @@index([defectReason], map: "idx_defects_defect_reason")
   @@map("defects")
 }
 

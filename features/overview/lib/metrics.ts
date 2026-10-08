@@ -1,11 +1,14 @@
+import { DEFECT_REASONS } from '@/constants/defectReasons';
 import { getAcknowledgmentAudience } from '@/features/team/lib/roster';
-import type { Defect } from '@/types/defect';
+import type { Defect, DefectReasonCode } from '@/types/defect';
 import type { TeamMember } from '@/types/team';
 
 export type CaseMetrics = {
   total: number;
   individualCount: number;
   entityCount: number;
+  /** Created within the current calendar month, derived from dateCreated already on each Defect. */
+  thisPeriodCount: number;
 };
 
 export type AnalystActivity = {
@@ -16,10 +19,12 @@ export type AnalystActivity = {
 };
 
 export function computeCaseMetrics(defects: Defect[]): CaseMetrics {
+  const currentMonthPrefix = new Date().toISOString().substring(0, 7); // "yyyy-mm"
   return {
     total: defects.length,
     individualCount: defects.filter((defect) => defect.caseType === 'Individual').length,
     entityCount: defects.filter((defect) => defect.caseType === 'Entity').length,
+    thisPeriodCount: defects.filter((defect) => defect.dateCreated.startsWith(currentMonthPrefix)).length,
   };
 }
 
@@ -38,6 +43,45 @@ export function buildAnalystActivity(defects: Defect[], users: TeamMember[]): An
   }
 
   return [...activityByName.values()];
+}
+
+export type DefectReasonBreakdownItem = {
+  code: DefectReasonCode;
+  label: string;
+  shortLabel: string;
+  count: number;
+  /** Of classified defects only — see classifiedCount on DefectReasonBreakdown. */
+  percentage: number;
+};
+
+export type DefectReasonBreakdown = {
+  items: DefectReasonBreakdownItem[];
+  /** Defects with a defectReason recorded. Percentages are relative to this, not totalCount. */
+  classifiedCount: number;
+  totalCount: number;
+};
+
+/**
+ * "Defects by Reason" — real counts/percentages from stored data only, never invented. Defects
+ * without a recorded reason (historical, or not yet classified) are excluded from the percentage
+ * base so they don't get silently folded into any one category.
+ */
+export function computeDefectReasonBreakdown(defects: Defect[]): DefectReasonBreakdown {
+  const classified = defects.filter((defect) => defect.defectReason !== null);
+  const classifiedCount = classified.length;
+
+  const items = DEFECT_REASONS.map((reason) => {
+    const count = classified.filter((defect) => defect.defectReason === reason.code).length;
+    return {
+      code: reason.code,
+      label: reason.label,
+      shortLabel: reason.shortLabel,
+      count,
+      percentage: classifiedCount > 0 ? Math.round((count / classifiedCount) * 100) : 0,
+    };
+  });
+
+  return { items, classifiedCount, totalCount: defects.length };
 }
 
 /** Percentage of possible read receipts (defects × active non-admin members) that exist. */

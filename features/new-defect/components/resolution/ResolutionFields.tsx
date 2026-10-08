@@ -9,10 +9,10 @@ export function ResolutionFields() {
   const { draft, updateDraft, resolvedBy, setResolvedBy } = useNewDefectDraft();
 
   const labelClass = `block font-semibold ${t.headingText} mb-1`;
-  const fieldClass = `w-full p-2.5 ${t.inputBg} rounded focus:border-[#003EA4] focus:outline-none text-xs`;
+  const fieldClass = `w-full p-2.5 ${t.inputBg} rounded focus:border-[#0757C9] focus:outline-none text-xs`;
 
   return (
-    <div className={`p-4 ${t.innerBoxBg} rounded-lg border space-y-4`}>
+    <div className={`p-4 ${t.innerBoxBg} rounded-[14px] border space-y-4`}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="new-defect-corrective-action" className={labelClass}>

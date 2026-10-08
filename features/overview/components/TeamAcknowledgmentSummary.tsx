@@ -10,7 +10,7 @@ export function TeamAcknowledgmentSummary({ rate }: { rate: number }) {
       className={`pt-3 border-t ${darkMode ? 'border-[#1E2E4A] bg-[#0B1426]/60' : 'border-[#E9ECEF] bg-blue-50/40'} p-3 rounded-md flex items-center justify-between`}
     >
       <div className="flex items-center gap-2">
-        <div className="w-7 h-7 rounded-full bg-[#003EA4] text-white flex items-center justify-center font-bold text-xs">
+        <div className="w-7 h-7 rounded-full bg-[#0757C9] text-white flex items-center justify-center font-bold text-xs">
           <Percent className="w-3.5 h-3.5 text-white" />
         </div>
         <div>

@@ -3,7 +3,7 @@ import type { WizardStep } from '@/features/new-defect/lib/draft';
 
 export function WizardHeader({ step }: { step: WizardStep }) {
   return (
-    <div className="p-5 bg-gradient-to-r from-[#003EA4] to-[#002D72] text-white flex items-center justify-between">
+    <div className="p-5 bg-gradient-to-r from-[#0757C9] to-[#063B82] text-white flex items-center justify-between">
       <div>
         <div className="flex items-center gap-2 mb-1">
           <span className="bg-white/20 text-white font-mono text-xs px-2 py-0.5 rounded font-bold">KYC Defect Intake Workflow</span>

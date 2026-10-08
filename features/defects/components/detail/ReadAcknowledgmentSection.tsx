@@ -21,9 +21,9 @@ export function ReadAcknowledgmentSection({ defect }: { defect: Defect }) {
       <div className={`p-3 rounded border space-y-2 ${t.innerBoxBg}`}>
         <div className="flex items-center justify-between">
           <span className={`text-[11px] font-semibold ${t.headingText}`}>
-            Team Acknowledged: <strong className="text-[#003EA4] dark:text-blue-400">{defect.readReceipts.length}{` of ${ACKNOWLEDGMENT_TARGET}`}</strong>
+            Team Acknowledged: <strong className="text-[#0757C9] dark:text-blue-400">{defect.readReceipts.length}{` of ${ACKNOWLEDGMENT_TARGET}`}</strong>
           </span>
-          <button onClick={openReadMatrix} className="text-[11px] text-[#003EA4] dark:text-blue-400 font-bold hover:underline cursor-pointer">
+          <button onClick={openReadMatrix} className="text-[11px] text-[#0757C9] dark:text-blue-400 font-bold hover:underline cursor-pointer">
             View Full Matrix
           </button>
         </div>

@@ -1,4 +1,5 @@
 import { FileText, X } from 'lucide-react';
+import { UploadDropzone } from '@/features/new-defect/components/attachments/UploadDropzone';
 import { useNewDefectDraft } from '@/features/new-defect/context/NewDefectDraftProvider';
 import { previewEvidenceFile } from '@/features/new-defect/lib/attachmentPreview';
 import { useTeam } from '@/features/team/context/TeamProvider';
@@ -34,22 +35,20 @@ export function EvidenceFilesField() {
       <label htmlFor="new-defect-evidence" className={`block font-semibold ${t.headingText} mb-1`}>
         Optional Resolution Evidence (Supporting Docs)
       </label>
-      <div className="flex gap-2 mb-2">
-        <input
-          id="new-defect-evidence"
-          type="file"
-          onChange={(e) => updateDraft({ evidencePending: e.target.files?.[0] ?? null })}
-          className={`flex-1 p-1.5 ${t.inputBg} rounded text-xs focus:outline-none`}
-        />
-        <button
-          type="button"
-          onClick={addFile}
-          disabled={!draft.evidencePending}
-          className={`px-3 py-2 ${darkMode ? 'bg-neutral-800 text-neutral-200' : 'bg-neutral-200 text-neutral-800'} hover:opacity-90 font-semibold rounded text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`}
-        >
-          + Add File
-        </button>
-      </div>
+
+      <UploadDropzone
+        className={darkMode ? 'border-blue-900/50 bg-[#0B1426]' : 'border-blue-300/60 bg-white'}
+        iconClassName="w-6 h-6 mx-auto text-blue-600"
+        title="Add Supporting Evidence"
+        subtitle="Drag & drop a file here, or click to browse"
+        inputId="new-defect-evidence"
+        pendingFile={draft.evidencePending}
+        onPendingFileChange={(evidencePending) => updateDraft({ evidencePending })}
+        onAttach={addFile}
+        onRejected={(message) => showToast(message)}
+        attachButtonClassName={`px-3 py-1.5 ${darkMode ? 'bg-neutral-800 text-neutral-200' : 'bg-neutral-200 text-neutral-800'} hover:opacity-90 font-semibold rounded text-xs cursor-pointer`}
+        attachLabel="+ Add File"
+      />
 
       {draft.evidenceFiles.length > 0 && (
         <div className="space-y-1">

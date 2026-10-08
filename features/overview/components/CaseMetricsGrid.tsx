@@ -1,4 +1,4 @@
-import { Building2, Layers, User as UserIcon } from 'lucide-react';
+import { Building2, CalendarRange, Layers, User as UserIcon } from 'lucide-react';
 import { MetricCard } from '@/features/overview/components/MetricCard';
 import type { CaseMetrics } from '@/features/overview/lib/metrics';
 import { useTheme } from '@/providers/ThemeProvider';
@@ -7,11 +7,11 @@ export function CaseMetricsGrid({ metrics }: { metrics: CaseMetrics }) {
   const { t } = useTheme();
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <MetricCard
         label="Total Defects"
         icon={Layers}
-        iconClassName="bg-blue-50 dark:bg-blue-900/40 text-[#003EA4] dark:text-blue-300"
+        iconClassName="bg-blue-50 dark:bg-blue-900/40 text-[#0757C9] dark:text-[#4A9BFF]"
         value={metrics.total}
         valueClassName={t.headingText}
         caption="Total QC defect records in system"
@@ -31,6 +31,14 @@ export function CaseMetricsGrid({ metrics }: { metrics: CaseMetrics }) {
         value={metrics.entityCount}
         valueClassName="text-emerald-600 dark:text-emerald-400"
         caption="Corporate & institutional entity reviews"
+      />
+      <MetricCard
+        label="This Period"
+        icon={CalendarRange}
+        iconClassName="bg-amber-50 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300"
+        value={metrics.thisPeriodCount}
+        valueClassName="text-amber-600 dark:text-amber-400"
+        caption="Logged this calendar month"
       />
     </div>
   );

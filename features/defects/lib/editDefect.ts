@@ -28,6 +28,7 @@ export function finalizeEditedDefect(draft: DefectEditDraft): Defect {
     ccid: sanitizeCcid(draft.ccid) || draft.ccid,
     kycid: draft.kycid.trim(),
     explanation: draft.explanation.trim(),
+    defectReasonDetails: draft.defectReasonDetails.trim(),
     resolution: {
       ...draft.resolution,
       correctiveAction: draft.resolution.correctiveAction.trim(),

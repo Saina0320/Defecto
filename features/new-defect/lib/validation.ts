@@ -26,5 +26,8 @@ export function getSubmissionIssue(draft: NewDefectDraft): DraftIssue | null {
   if (!draft.kycid) return { message: 'Please provide the KYCID as it appears in KIWI.', step: 1 };
   if (!draft.explanation) return { message: 'Please provide the defect explanation/context.', step: 1 };
   if (!draft.qcFile) return { message: 'Please attach the QC Findings File from the Checker in Step 2.', step: 2 };
+  if (!draft.defectReason) {
+    return { message: 'Please select the primary reason or contributing factor for this defect.', step: 3 };
+  }
   return null;
 }

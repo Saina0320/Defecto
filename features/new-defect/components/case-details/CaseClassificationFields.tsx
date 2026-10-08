@@ -26,7 +26,7 @@ export function CaseClassificationFields() {
               type="button"
               onClick={() => selectCaseType(type)}
               className={`py-2 px-3 rounded font-bold text-xs border text-center transition cursor-pointer ${
-                draft.caseType === type ? 'bg-[#003EA4] text-white border-[#003EA4] shadow-xs' : unselectedTypeClass
+                draft.caseType === type ? 'bg-[#0757C9] text-white border-[#0757C9] shadow-xs' : unselectedTypeClass
               }`}
             >
               {type}
@@ -43,7 +43,7 @@ export function CaseClassificationFields() {
           id="new-defect-analyst"
           value={analyst}
           onChange={(e) => setAnalyst(e.target.value)}
-          className={`w-full p-2.5 ${t.inputBg} rounded focus:border-[#003EA4] focus:outline-none font-medium cursor-pointer`}
+          className={`w-full p-2.5 ${t.inputBg} rounded focus:border-[#0757C9] focus:outline-none font-medium cursor-pointer`}
         >
           {getActiveAnalysts(teamUsers).map((member) => (
             <option key={member.id} value={member.name}>
@@ -62,7 +62,7 @@ export function CaseClassificationFields() {
           type="date"
           value={draft.date}
           onChange={(e) => updateDraft({ date: e.target.value })}
-          className={`w-full p-2.5 ${t.inputBg} rounded focus:border-[#003EA4] focus:outline-none font-mono cursor-pointer`}
+          className={`w-full p-2.5 ${t.inputBg} rounded focus:border-[#0757C9] focus:outline-none font-mono cursor-pointer`}
         />
       </div>
     </div>

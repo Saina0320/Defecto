@@ -14,12 +14,12 @@ export function TeamMemberCard({ member, handledDefects, onDecommission }: TeamM
 
   return (
     <div
-      className={`${t.cardBg} p-4 rounded-lg border hover:shadow transition flex flex-col justify-between ${isDecommissioned ? 'opacity-60 border-dashed' : ''}`}
+      className={`${t.cardBg} p-4 rounded-[14px] border hover:shadow transition flex flex-col justify-between ${isDecommissioned ? 'opacity-60 border-dashed' : ''}`}
     >
       <div>
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900 text-[#003EA4] dark:text-blue-200 font-bold text-xs flex items-center justify-center border border-blue-200 dark:border-blue-800">
+            <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900 text-[#0757C9] dark:text-blue-200 font-bold text-xs flex items-center justify-center border border-blue-200 dark:border-blue-800">
               {member.initials}
             </div>
             <div>

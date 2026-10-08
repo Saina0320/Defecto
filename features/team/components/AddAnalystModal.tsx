@@ -86,7 +86,7 @@ export function AddAnalystModal({ onClose }: { onClose: () => void }) {
     <Modal className="max-w-md p-5 space-y-4">
       <div className="flex items-center justify-between pb-2 border-b border-neutral-200 dark:border-neutral-700">
         <h4 className={`font-bold text-sm ${t.headingText} flex items-center gap-2`}>
-          <UserPlus className="w-4 h-4 text-[#003EA4] dark:text-blue-400" />
+          <UserPlus className="w-4 h-4 text-[#0757C9] dark:text-blue-400" />
           Add Analyst to Roster
         </h4>
         <button onClick={onClose} className="text-neutral-400 hover:text-neutral-600 cursor-pointer">
@@ -208,7 +208,7 @@ export function AddAnalystModal({ onClose }: { onClose: () => void }) {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-1.5 bg-[#003EA4] hover:bg-[#002D72] text-white font-bold rounded text-xs cursor-pointer shadow-xs disabled:cursor-wait disabled:bg-[#003EA4]/75 disabled:hover:bg-[#003EA4]/75"
+              className="px-4 py-1.5 bg-[#0757C9] hover:bg-[#063B82] text-white font-bold rounded text-xs cursor-pointer shadow-xs disabled:cursor-wait disabled:bg-[#0757C9]/75 disabled:hover:bg-[#0757C9]/75"
             >
               {isSubmitting ? 'Adding...' : 'Add Analyst'}
             </button>

@@ -11,9 +11,9 @@ const SECTION_CONFIG: Record<
 > = {
   CORE: {
     title: 'Core Case KYC Areas',
-    badgeClass: 'bg-[#003EA4]',
+    badgeClass: 'bg-[#0757C9]',
     keyPrefix: 'core',
-    selectedClass: 'bg-[#003EA4] text-white border-[#003EA4] font-bold shadow-xs',
+    selectedClass: 'bg-[#0757C9] text-white border-[#0757C9] font-bold shadow-xs',
     lightHoverClass: 'hover:bg-blue-50/50',
   },
   APPENDIX: {
@@ -34,7 +34,7 @@ function CategorySectionBox({ section }: { section: CategorySection }) {
     : `bg-white text-neutral-700 border-neutral-200 ${config.lightHoverClass}`;
 
   return (
-    <div className={`p-3.5 ${t.innerBoxBg} rounded-lg border`}>
+    <div className={`p-3.5 ${t.innerBoxBg} rounded-[14px] border`}>
       <div className={`flex items-center gap-2 mb-2 pb-1.5 border-b ${t.divider}`}>
         <span className={`${config.badgeClass} text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase`}>{section}</span>
         <span className={`text-[11px] font-semibold ${t.headingText}`}>{config.title}</span>
@@ -80,7 +80,7 @@ export function CategorySelector() {
           </p>
         </div>
         <span
-          className={`text-[11px] font-semibold ${darkMode ? 'bg-blue-950/60 text-blue-300 border-blue-800' : 'bg-[#EBF3FC] text-[#002D72] border-[#B9D5F7]'} px-2 py-0.5 rounded border`}
+          className={`text-[11px] font-semibold ${darkMode ? 'bg-blue-950/60 text-blue-300 border-blue-800' : 'bg-[#EBF3FC] text-[#063B82] border-[#B9D5F7]'} px-2 py-0.5 rounded border`}
         >
           {draft.categories.length} areas selected
         </span>

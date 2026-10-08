@@ -87,7 +87,7 @@ export function LoginForm() {
             className={`w-full h-12 pl-10 pr-3 bg-[#F8F9FA] border rounded-xl font-mono font-bold text-base sm:text-sm tracking-wider text-neutral-900 placeholder:font-normal placeholder:tracking-normal placeholder:text-neutral-400 transition focus:bg-white focus:outline-none focus:ring-2 read-only:opacity-70 ${
               issue
                 ? 'border-[#E21836] focus:border-[#E21836] focus:ring-[#E21836]/20'
-                : 'border-[#DEE2E6] hover:border-neutral-300 focus:border-[#0047BB] focus:ring-[#3B82F6]/25'
+                : 'border-[#DEE2E6] hover:border-neutral-300 focus:border-[#0569FF] focus:ring-[#2F80ED]/25'
             }`}
           />
         </div>
@@ -111,7 +111,7 @@ export function LoginForm() {
         type="submit"
         disabled={isPending}
         aria-busy={isPending}
-        className="w-full h-12 px-5 bg-linear-to-r from-[#0047BB] to-[#0066FF] hover:from-[#003694] hover:to-[#0052D6] active:from-[#002E7A] active:to-[#0047BB] text-white text-sm font-bold rounded-xl shadow-[0_10px_26px_-6px_rgba(0,102,255,0.5)] transition flex items-center justify-center gap-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#0066FF] disabled:cursor-wait disabled:from-[#0047BB]/70 disabled:to-[#0066FF]/70 disabled:hover:from-[#0047BB]/70 disabled:hover:to-[#0066FF]/70"
+        className="w-full h-12 px-5 bg-gradient-to-r from-[#071B41] to-[#0569FF] hover:from-[#051530] hover:to-[#045BDE] active:from-[#030e20] active:to-[#0349b5] text-white text-sm font-bold rounded-xl shadow-[0_10px_26px_-6px_rgba(5,105,255,0.45)] transition flex items-center justify-center gap-2 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#0569FF] disabled:cursor-wait disabled:from-[#071B41]/70 disabled:to-[#0569FF]/70 disabled:hover:from-[#071B41]/70 disabled:hover:to-[#0569FF]/70"
       >
         {isPending ? (
           <>
@@ -120,7 +120,7 @@ export function LoginForm() {
           </>
         ) : (
           <>
-            <span>Sign in</span>
+            <span>Continue</span>
             <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </>
         )}

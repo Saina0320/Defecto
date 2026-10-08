@@ -76,7 +76,7 @@ export function NotificationsMenu() {
     <div className="relative" ref={containerRef}>
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`p-2 ${t.mutedText} hover:text-neutral-800 dark:hover:text-white rounded-md hover:bg-neutral-100 dark:hover:bg-white/5 relative cursor-pointer`}
+        className={`p-2 ${t.mutedText} hover:text-[#102A43] dark:hover:text-[#E8F0FA] rounded-[10px] hover:bg-[#F8FAFD] dark:hover:bg-white/5 relative cursor-pointer`}
         aria-label="Notifications"
       >
         <Bell className="w-4 h-4" />
@@ -89,14 +89,14 @@ export function NotificationsMenu() {
 
       {isOpen && (
         <div
-          className={`absolute right-0 mt-2 w-80 ${darkMode ? 'bg-[#111E38] border-[#1E2E4A] text-white' : 'bg-white border-neutral-200 text-[#1E293B] shadow-2xl'} rounded-lg p-3 z-50 text-xs border`}
+          className={`absolute right-0 mt-2 w-80 ${darkMode ? 'bg-[#0E1A2B] border-[#20344D] text-[#E8F0FA]' : 'bg-white border-[#D9E2EC] text-[#102A43] shadow-2xl'} rounded-[14px] p-3 z-50 text-xs border`}
         >
           <div className={`flex justify-between items-center pb-2 border-b ${t.dividerNeutral} font-bold`}>
-            <span className={darkMode ? 'text-white' : 'text-[#002D72]'}>Notifications</span>
+            <span className={darkMode ? 'text-[#E8F0FA]' : 'text-[#063B82]'}>Notifications</span>
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className={`text-[10px] font-semibold cursor-pointer ${darkMode ? 'text-blue-300 hover:text-blue-200' : 'text-[#003EA4] hover:text-[#002D72]'}`}
+                className={`text-[10px] font-semibold cursor-pointer ${darkMode ? 'text-[#4A9BFF] hover:text-[#7FB8FF]' : 'text-[#0757C9] hover:text-[#063B82]'}`}
               >
                 Mark all as read
               </button>
@@ -111,20 +111,20 @@ export function NotificationsMenu() {
                 <button
                   key={notification.id}
                   onClick={() => handleOpenNotification(notification)}
-                  className={`w-full text-left p-2.5 rounded border-l-4 transition cursor-pointer ${
+                  className={`w-full text-left p-2.5 rounded-[10px] border-l-4 transition cursor-pointer ${
                     notification.isRead
-                      ? `border-transparent ${darkMode ? 'bg-[#0B1426]/60 hover:bg-[#0B1426]' : 'bg-neutral-50 hover:bg-neutral-100'}`
-                      : `border-[#003EA4] ${darkMode ? 'bg-blue-950/30 hover:bg-blue-950/50' : 'bg-[#F0F7FF] hover:bg-blue-50'}`
+                      ? `border-transparent ${darkMode ? 'bg-[#0E1A2B]/70 hover:bg-[#122238]' : 'bg-[#F8FAFD] hover:bg-[#F1F5F9]'}`
+                      : `border-[#0757C9] ${darkMode ? 'bg-blue-950/30 hover:bg-blue-950/50' : 'bg-[#EDF4FD] hover:bg-[#E3EFFC]'}`
                   }`}
                 >
                   <div className="flex items-start gap-2">
                     <FileWarning
-                      className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${notification.isRead ? t.mutedText : 'text-[#003EA4] dark:text-blue-400'}`}
+                      className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${notification.isRead ? t.mutedText : 'text-[#0757C9] dark:text-[#4A9BFF]'}`}
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <p
-                          className={`font-bold text-[11px] ${notification.isRead ? t.mutedText : darkMode ? 'text-blue-200' : 'text-[#002D72]'}`}
+                          className={`font-bold text-[11px] ${notification.isRead ? t.mutedText : darkMode ? 'text-[#7FB8FF]' : 'text-[#063B82]'}`}
                         >
                           {notification.title}
                         </p>

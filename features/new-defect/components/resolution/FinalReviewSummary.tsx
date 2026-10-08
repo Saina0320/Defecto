@@ -1,4 +1,5 @@
 import { CheckCheck } from 'lucide-react';
+import { getDefectReasonDefinition } from '@/constants/defectReasons';
 import { useNewDefectDraft } from '@/features/new-defect/context/NewDefectDraftProvider';
 import { getCategoryBadgeClass } from '@/lib/theme';
 import { useTheme } from '@/providers/ThemeProvider';
@@ -12,13 +13,14 @@ export function FinalReviewSummary() {
   const summaryItems = [
     { label: 'Case Type:', value: draft.caseType, truncate: false },
     { label: 'Analyst:', value: analyst, truncate: false },
+    { label: 'Reason:', value: getDefectReasonDefinition(draft.defectReason)?.shortLabel || 'Not selected', truncate: false },
     { label: 'QC File:', value: draft.qcFile?.name || 'Attached', truncate: true },
     { label: 'Final ZIP:', value: draft.finalZip?.name || 'None (Optional)', truncate: true },
   ];
 
   return (
     <div
-      className={`p-4 rounded-lg border space-y-3 ${darkMode ? 'bg-[#0B1426] border-[#1E2E4A]' : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200'}`}
+      className={`p-4 rounded-[14px] border space-y-3 ${darkMode ? 'bg-[#0B1426] border-[#1E2E4A]' : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200'}`}
     >
       <div className="flex items-center justify-between">
         <span className={`font-bold text-xs ${t.cyanTagText} uppercase tracking-wider flex items-center gap-1.5`}>

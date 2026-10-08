@@ -5,7 +5,7 @@ import { useTheme } from '@/providers/ThemeProvider';
 import type { CaseType, CategorySection, DefectCategory } from '@/types/defect';
 
 const SECTION_STYLES: Record<CategorySection, { badgeClass: string; selectedClass: string }> = {
-  CORE: { badgeClass: 'bg-[#003EA4]', selectedClass: 'bg-[#003EA4] text-white border-[#003EA4] font-bold' },
+  CORE: { badgeClass: 'bg-[#0757C9]', selectedClass: 'bg-[#0757C9] text-white border-[#0757C9] font-bold' },
   APPENDIX: { badgeClass: 'bg-neutral-700', selectedClass: 'bg-neutral-800 dark:bg-neutral-700 text-white border-neutral-800 font-bold' },
 };
 

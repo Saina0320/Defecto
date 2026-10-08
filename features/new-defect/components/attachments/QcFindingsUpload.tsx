@@ -25,7 +25,7 @@ export function QcFindingsUpload() {
   };
 
   return (
-    <div className={`${t.innerBoxBg} p-4 rounded-lg border flex flex-col justify-between`}>
+    <div className={`${t.innerBoxBg} p-4 rounded-[14px] border flex flex-col justify-between`}>
       <div>
         <div className={`flex items-center gap-2 mb-2 pb-2 border-b ${t.dividerNeutral}`}>
           <span className="p-1.5 bg-red-100 text-red-700 rounded">
@@ -57,6 +57,7 @@ export function QcFindingsUpload() {
             pendingFile={draft.qcFilePending}
             onPendingFileChange={(qcFilePending) => updateDraft({ qcFilePending })}
             onAttach={attach}
+            onRejected={(message) => showToast(message)}
             attachButtonClassName="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded text-xs cursor-pointer"
           />
         )}

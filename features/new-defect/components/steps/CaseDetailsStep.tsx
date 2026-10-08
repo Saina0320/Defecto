@@ -36,7 +36,7 @@ export function CaseDetailsStep() {
           placeholder="Provide clear background context of the case and the identified deficiency..."
           value={draft.explanation}
           onChange={(e) => updateDraft({ explanation: e.target.value })}
-          className={`w-full p-2.5 ${t.inputBg} rounded focus:border-[#003EA4] focus:outline-none text-xs`}
+          className={`w-full p-2.5 ${t.inputBg} rounded focus:border-[#0757C9] focus:outline-none text-xs`}
         />
       </div>
 

@@ -22,7 +22,7 @@ export function CopyableValue({ value, display, label, copyTitle, className }: C
           e.stopPropagation();
           copyToClipboard(value, label);
         }}
-        className="p-0.5 text-neutral-400 hover:text-[#003EA4] dark:hover:text-blue-300 rounded cursor-pointer"
+        className="p-0.5 text-neutral-400 hover:text-[#0757C9] dark:hover:text-blue-300 rounded cursor-pointer"
         title={copyTitle}
       >
         <Copy className="w-3 h-3" />

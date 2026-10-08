@@ -1,10 +1,20 @@
 import 'server-only';
+import { isDefectReasonCode } from '@/constants/defectReasons';
 import type { Prisma } from '@/generated/prisma/client';
 import { formatTimestamp } from '@/lib/dates';
 import { formatFileSize } from '@/lib/fileSize';
 import { getPrisma } from '@/lib/prisma';
 import { toUserRole } from '@/services/profiles';
-import type { AttachedFile, CaseType, CategorySection, Defect, DefectCategory, EvidenceFile, ReadReceipt } from '@/types/defect';
+import type {
+  AttachedFile,
+  CaseType,
+  CategorySection,
+  Defect,
+  DefectCategory,
+  DefectReasonCode,
+  EvidenceFile,
+  ReadReceipt,
+} from '@/types/defect';
 
 const defectSelect = {
   id: true,
@@ -14,6 +24,8 @@ const defectSelect = {
   analystId: true,
   analystContext: true,
   status: true,
+  defectReason: true,
+  defectReasonDetails: true,
   createdAt: true,
   analyst: { select: { firstName: true, lastName: true } },
   reads: {
@@ -56,6 +68,11 @@ function toCategorySection(section: string): CategorySection {
 
 function toDbSection(section: CategorySection): string {
   return section === 'CORE' ? 'core' : 'appendix';
+}
+
+/** Defensive against any unexpected stored value — never surfaces something that isn't a known code. */
+function toDefectReasonCode(value: string | null): DefectReasonCode | null {
+  return isDefectReasonCode(value) ? value : null;
 }
 
 /** The real uploader's name, resolved from Evidence.uploadedById -> Profile. Never a role or a guess. */
@@ -126,6 +143,9 @@ function toDefect(record: DefectRecord): Defect {
     readReceipts: record.reads.map(toReadReceipt),
 
     status: record.status,
+
+    defectReason: toDefectReasonCode(record.defectReason),
+    defectReasonDetails: record.defectReasonDetails || '',
   };
 }
 
@@ -145,6 +165,8 @@ export type NewDefectValues = {
   analystId: string;
   explanation: string;
   categories: DefectCategory[];
+  defectReason: DefectReasonCode;
+  defectReasonDetails: string;
 };
 
 /** Stores a new defect as a draft, with its selected categories, and returns its generated id and status. */
@@ -157,6 +179,8 @@ export async function createDefect(values: NewDefectValues): Promise<{ id: strin
       analystId: values.analystId,
       analystContext: values.explanation,
       status: 'draft',
+      defectReason: values.defectReason,
+      defectReasonDetails: values.defectReasonDetails || null,
       categories: {
         createMany: {
           data: values.categories.map((category) => ({ section: toDbSection(category.section), name: category.name })),
@@ -197,6 +221,14 @@ export async function setDefectCategories(defectId: string, categories: DefectCa
       data: categories.map((category) => ({ defectId, section: toDbSection(category.section), name: category.name })),
     }),
   ]);
+}
+
+/** Replaces the defect's stored reason/contributing factor and its optional free-text details. */
+export async function setDefectReason(defectId: string, defectReason: DefectReasonCode, defectReasonDetails: string): Promise<void> {
+  await getPrisma().defect.update({
+    where: { id: defectId },
+    data: { defectReason, defectReasonDetails: defectReasonDetails || null },
+  });
 }
 
 /**

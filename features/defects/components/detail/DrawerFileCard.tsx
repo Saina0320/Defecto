@@ -48,7 +48,7 @@ export function DrawerFileCard({ icon: Icon, iconClassName, evidenceId, fileName
       <button
         onClick={handleDownload}
         disabled={!isPersisted || isDownloading}
-        className="p-1.5 text-neutral-500 hover:text-[#003EA4] rounded cursor-pointer disabled:cursor-wait disabled:opacity-50"
+        className="p-1.5 text-neutral-500 hover:text-[#0757C9] rounded cursor-pointer disabled:cursor-wait disabled:opacity-50"
         title={isPersisted ? downloadTitle : 'Still uploading — refresh the page once the defect is saved'}
       >
         {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}

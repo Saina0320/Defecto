@@ -43,7 +43,7 @@ export function ReadMatrixModal({ defect }: { defect: Defect }) {
       </div>
 
       <div className="flex justify-end pt-2 border-t border-neutral-200 dark:border-neutral-700">
-        <button type="button" onClick={closeReadMatrix} className="px-4 py-1.5 bg-[#003EA4] text-white rounded text-xs font-semibold cursor-pointer">
+        <button type="button" onClick={closeReadMatrix} className="px-4 py-1.5 bg-[#0757C9] text-white rounded text-xs font-semibold cursor-pointer">
           Done
         </button>
       </div>

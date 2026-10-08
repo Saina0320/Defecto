@@ -1,5 +1,6 @@
 'use server';
 
+import { isDefectReasonCode } from '@/constants/defectReasons';
 import { isKnownCategory } from '@/features/defects/lib/categories';
 import { requireUser } from '@/lib/auth/session';
 import { formatTimestamp } from '@/lib/dates';
@@ -12,8 +13,9 @@ import {
   getDefectAnalystId,
   getDefectOwnerAndCaseType,
   setDefectCategories,
+  setDefectReason as setDefectReasonInDb,
 } from '@/services/defects';
-import type { DefectCategory } from '@/types/defect';
+import type { DefectCategory, DefectReasonCode } from '@/types/defect';
 
 export type DeleteDefectResult = { ok: true } | { ok: false; reason: 'not-found' | 'forbidden' | 'database-error' };
 
@@ -105,6 +107,37 @@ export async function setCategories(defectId: string, categories: unknown): Prom
     return { ok: true, categories };
   } catch (error) {
     console.error('Error saving defect categories:', error);
+    return { ok: false, reason: 'database-error' };
+  }
+}
+
+export type SetDefectReasonResult =
+  | { ok: true; defectReason: DefectReasonCode; defectReasonDetails: string }
+  | { ok: false; reason: 'not-found' | 'forbidden' | 'invalid-reason' | 'database-error' };
+
+/**
+ * Replaces a defect's stored reason/contributing factor and its optional details. Same ownership
+ * rule as setCategories: the creator, or a manager/admin, per lib/permissions.ts.
+ */
+export async function setDefectReason(defectId: string, defectReason: unknown, defectReasonDetails: unknown): Promise<SetDefectReasonResult> {
+  if (typeof defectId !== 'string' || !defectId) return { ok: false, reason: 'not-found' };
+  if (!isDefectReasonCode(defectReason)) return { ok: false, reason: 'invalid-reason' };
+  if (defectReasonDetails !== undefined && typeof defectReasonDetails !== 'string') return { ok: false, reason: 'invalid-reason' };
+
+  const user = await requireUser();
+
+  const analystId = await getDefectAnalystId(defectId);
+  if (!analystId) return { ok: false, reason: 'not-found' };
+  if (!isSupervisorRole(user.role) && analystId !== user.id) {
+    return { ok: false, reason: 'forbidden' };
+  }
+
+  const details = defectReasonDetails ?? '';
+  try {
+    await setDefectReasonInDb(defectId, defectReason, details);
+    return { ok: true, defectReason, defectReasonDetails: details };
+  } catch (error) {
+    console.error('Error saving defect reason:', error);
     return { ok: false, reason: 'database-error' };
   }
 }
